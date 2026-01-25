@@ -1,0 +1,323 @@
+---
+name: environment
+description: This skill should be used when the user wants to create, terminate, rebuild, or swap environments, perform blue/green deployments, or manage environment lifecycle. For configuration changes, use config skill. For deployments, use deploy skill.
+argument-hint: "[env-name]"
+disable-model-invocation: true
+allowed-tools: Bash(aws elasticbeanstalk:*), Bash(scripts/eb-api.sh:*)
+---
+
+# AWS Elastic Beanstalk Environment Management
+
+Create, terminate, rebuild, and manage Elastic Beanstalk environment lifecycle.
+
+## When to Use
+
+- User wants to create a new environment
+- User says "terminate environment", "delete environment"
+- User asks for blue/green deployment
+- User wants to rebuild or clone an environment
+- User says "swap URLs", "switch environments"
+
+## When NOT to Use
+
+- For deploying versions → use `deploy` skill
+- For configuration changes → use `config` skill
+- For health status → use `health` skill
+
+## Destructive Operations Warning
+
+**Before running terminate, rebuild, or force operations:**
+
+1. **Verify the environment name** - Double-check you're targeting the correct environment
+2. **Check for active traffic** - Use `health` skill to verify no users are affected
+3. **Confirm with user** - Always ask for explicit confirmation before destructive actions
+4. **Consider backups** - Ensure configuration is saved if needed
+
+Commands requiring extra caution:
+- `terminate-environment` - Permanently deletes the environment
+- `terminate-environment --force-terminate` - Skips cleanup, may leave orphaned resources
+- `rebuild-environment` - Causes downtime, recreates all instances
+
+## Create Environment
+
+### Basic Creation
+```bash
+aws elasticbeanstalk create-environment \
+  --application-name <app-name> \
+  --environment-name <env-name> \
+  --solution-stack-name "64bit Amazon Linux 2023 v6.0.0 running Node.js 18" \
+  --output json
+```
+
+### With Version
+```bash
+aws elasticbeanstalk create-environment \
+  --application-name <app-name> \
+  --environment-name <env-name> \
+  --version-label "v1.0.0" \
+  --solution-stack-name "64bit Amazon Linux 2023 v6.0.0 running Node.js 18" \
+  --output json
+```
+
+### With Configuration Template
+```bash
+aws elasticbeanstalk create-environment \
+  --application-name <app-name> \
+  --environment-name <env-name> \
+  --template-name production-template \
+  --output json
+```
+
+### With Custom Options
+```bash
+aws elasticbeanstalk create-environment \
+  --application-name <app-name> \
+  --environment-name <env-name> \
+  --solution-stack-name "64bit Amazon Linux 2023 v6.0.0 running Node.js 18" \
+  --option-settings \
+    Namespace=aws:autoscaling:launchconfiguration,OptionName=InstanceType,Value=t3.medium \
+    Namespace=aws:autoscaling:asg,OptionName=MinSize,Value=2 \
+    Namespace=aws:autoscaling:asg,OptionName=MaxSize,Value=10 \
+  --output json
+```
+
+### With CNAME Prefix
+```bash
+aws elasticbeanstalk create-environment \
+  --application-name <app-name> \
+  --environment-name my-app-prod \
+  --cname-prefix my-app-prod \
+  --solution-stack-name "64bit Amazon Linux 2023 v6.0.0 running Node.js 18" \
+  --output json
+```
+
+## Check CNAME Availability
+
+Before creating with custom CNAME:
+```bash
+aws elasticbeanstalk check-dns-availability \
+  --cname-prefix <desired-prefix> \
+  --output json
+```
+
+## List Solution Stacks
+
+Find available platforms:
+```bash
+aws elasticbeanstalk list-available-solution-stacks \
+  --output json | jq '.SolutionStacks[]' | grep -i <platform>
+```
+
+Common platforms:
+- Node.js: `"64bit Amazon Linux 2023 v6.0.0 running Node.js 18"`
+- Python: `"64bit Amazon Linux 2023 v4.0.0 running Python 3.11"`
+- Docker: `"64bit Amazon Linux 2023 v4.0.0 running Docker"`
+- Java: `"64bit Amazon Linux 2023 v4.0.0 running Corretto 17"`
+
+## Terminate Environment
+
+```bash
+aws elasticbeanstalk terminate-environment \
+  --environment-name <env-name> \
+  --output json
+```
+
+### Force Terminate (skip resource cleanup)
+```bash
+aws elasticbeanstalk terminate-environment \
+  --environment-name <env-name> \
+  --force-terminate \
+  --output json
+```
+
+## Rebuild Environment
+
+Recreate environment with same configuration:
+```bash
+aws elasticbeanstalk rebuild-environment \
+  --environment-name <env-name> \
+  --output json
+```
+
+Use when:
+- Environment is corrupted
+- Need fresh instances
+- Infrastructure issues
+
+## Blue/Green Deployment
+
+### Step 1: Create Clone (Green)
+```bash
+# Create new environment with different CNAME
+aws elasticbeanstalk create-environment \
+  --application-name <app-name> \
+  --environment-name <app>-green \
+  --version-label "v2.0.0" \
+  --cname-prefix <app>-green \
+  --solution-stack-name "..." \
+  --output json
+```
+
+### Step 2: Wait for Ready
+```bash
+aws elasticbeanstalk describe-environments \
+  --environment-names <app>-green \
+  --query 'Environments[0].Status' \
+  --output text
+```
+
+### Step 3: Test Green Environment
+Verify at: `<app>-green.elasticbeanstalk.com`
+
+### Step 4: Swap CNAMEs
+```bash
+aws elasticbeanstalk swap-environment-cnames \
+  --source-environment-name <app>-blue \
+  --destination-environment-name <app>-green \
+  --output json
+```
+
+### Step 5: Terminate Old Environment (Optional)
+```bash
+aws elasticbeanstalk terminate-environment \
+  --environment-name <app>-blue \
+  --output json
+```
+
+## Abort Update
+
+Cancel an in-progress environment update:
+```bash
+aws elasticbeanstalk abort-environment-update \
+  --environment-name <env-name> \
+  --output json
+```
+
+Use when:
+- Deployment is failing
+- Need to stop and investigate
+- Wrong version deployed
+
+## Environment Tiers
+
+### Web Server (default)
+For HTTP applications:
+```bash
+--tier Name=WebServer,Type=Standard,Version="1.0"
+```
+
+### Worker
+For background processing:
+```bash
+aws elasticbeanstalk create-environment \
+  --application-name <app-name> \
+  --environment-name <app>-worker \
+  --tier Name=Worker,Type=SQS/HTTP,Version="1.0" \
+  --solution-stack-name "..." \
+  --output json
+```
+
+## Clone Environment
+
+Create identical environment from existing:
+```bash
+# Get current config
+aws elasticbeanstalk describe-configuration-settings \
+  --application-name <app-name> \
+  --environment-name <source-env> \
+  --output json > source-config.json
+
+# Create template from source
+aws elasticbeanstalk create-configuration-template \
+  --application-name <app-name> \
+  --template-name clone-template \
+  --environment-id <source-env-id> \
+  --output json
+
+# Create new environment from template
+aws elasticbeanstalk create-environment \
+  --application-name <app-name> \
+  --environment-name <new-env-name> \
+  --template-name clone-template \
+  --output json
+```
+
+## Environment Tags
+
+Add tags during creation:
+```bash
+aws elasticbeanstalk create-environment \
+  --application-name <app-name> \
+  --environment-name <env-name> \
+  --solution-stack-name "..." \
+  --tags Key=Environment,Value=production Key=Team,Value=backend \
+  --output json
+```
+
+Update tags on existing:
+```bash
+aws elasticbeanstalk update-tags-for-resource \
+  --resource-arn arn:aws:elasticbeanstalk:<region>:<account>:environment/<app>/<env> \
+  --tags-to-add Key=CostCenter,Value=12345 \
+  --output json
+```
+
+## Presenting Environment Info
+
+Example output:
+```
+=== Created Environment ===
+
+Name: my-app-prod
+ID: e-xxxxxxxxxx
+Status: Launching
+Health: Grey (Pending)
+CNAME: my-app-prod.us-east-1.elasticbeanstalk.com
+Platform: 64bit Amazon Linux 2023 v6.0.0 running Node.js 18
+
+Estimated time: 5-10 minutes
+
+Monitor progress:
+aws elasticbeanstalk describe-events --environment-name my-app-prod
+```
+
+## Error Handling
+
+### CNAME Already Taken
+```
+CNAME prefix is already in use. Try a different prefix:
+aws elasticbeanstalk check-dns-availability --cname-prefix <alternative>
+```
+
+### Invalid Solution Stack
+```
+Solution stack not found. List available stacks:
+aws elasticbeanstalk list-available-solution-stacks | grep -i <platform>
+```
+
+### Environment Limit Reached
+```
+Maximum number of environments reached. Terminate unused environments or request limit increase.
+```
+
+### Creation Failed
+```
+Environment creation failed. Check events:
+aws elasticbeanstalk describe-events --environment-name <env-name> --severity ERROR
+```
+
+## Composability
+
+- **Deploy to new environment**: Use `deploy` skill
+- **Configure environment**: Use `config` skill
+- **Check health**: Use `health` skill
+- **View logs**: Use `logs` skill
+
+## Additional Resources
+
+For detailed reference information, see the shared reference files:
+
+- [Configuration Options](../_shared/references/config-options.md) - All available configuration namespaces and options
+- [Health States](../_shared/references/health-states.md) - Health colors, statuses, and thresholds
+- [Cost Optimization](../_shared/references/cost-optimization.md) - Instance sizing, scaling, and cost-saving strategies
+- [Platforms](../_shared/references/platforms.md) - Platform-specific configuration and requirements

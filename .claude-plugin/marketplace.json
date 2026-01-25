@@ -1,0 +1,26 @@
+{
+  "name": "aws-beanstalk-skills",
+  "version": "1.0.0",
+  "description": "AWS Elastic Beanstalk skills for Claude Code - deploy, monitor, troubleshoot",
+  "keywords": [
+    "aws",
+    "elastic-beanstalk",
+    "eb",
+    "deployment",
+    "devops",
+    "cloud",
+    "infrastructure"
+  ],
+  "author": {
+    "name": "shinmc",
+    "email": "contact@shinmc.com"
+  },
+  "repository": "https://github.com/shinmc/aws-beanstalk-skills",
+  "license": "MIT",
+  "plugins": [
+    {
+      "name": "aws-beanstalk",
+      "path": "plugins/aws-beanstalk"
+    }
+  ]
+}

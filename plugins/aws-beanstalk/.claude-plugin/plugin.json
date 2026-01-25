@@ -1,0 +1,11 @@
+{
+  "name": "aws-beanstalk",
+  "version": "1.0.0",
+  "description": "AWS Elastic Beanstalk tools for Claude Code",
+  "author": {
+    "name": "shinmc",
+    "email": "contact@shinmc.com"
+  },
+  "repository": "https://github.com/shinmc/aws-beanstalk-skills",
+  "license": "MIT"
+}
