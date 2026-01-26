@@ -24,6 +24,102 @@ Create, terminate, rebuild, and manage Elastic Beanstalk environment lifecycle.
 - For configuration changes → use `config` skill
 - For health status → use `health` skill
 
+## IAM Prerequisites
+
+Before creating an environment, you need two IAM resources:
+
+### 1. Service Role
+The role Elastic Beanstalk uses to manage AWS resources on your behalf.
+
+**Check if it exists:**
+```bash
+aws iam get-role --role-name aws-elasticbeanstalk-service-role --output json 2>/dev/null && echo "Service role exists" || echo "Service role NOT found"
+```
+
+**Create if missing:**
+```bash
+# Create the service role
+aws iam create-role \
+  --role-name aws-elasticbeanstalk-service-role \
+  --assume-role-policy-document '{
+    "Version": "2012-10-17",
+    "Statement": [{
+      "Effect": "Allow",
+      "Principal": {"Service": "elasticbeanstalk.amazonaws.com"},
+      "Action": "sts:AssumeRole"
+    }]
+  }' \
+  --output json
+
+# Attach required policies
+aws iam attach-role-policy \
+  --role-name aws-elasticbeanstalk-service-role \
+  --policy-arn arn:aws:iam::aws:policy/service-role/AWSElasticBeanstalkEnhancedHealth
+
+aws iam attach-role-policy \
+  --role-name aws-elasticbeanstalk-service-role \
+  --policy-arn arn:aws:iam::aws:policy/AWSElasticBeanstalkManagedUpdatesCustomerRolePolicy
+```
+
+### 2. EC2 Instance Profile
+The role attached to EC2 instances running your application.
+
+**Check if it exists:**
+```bash
+aws iam get-instance-profile --instance-profile-name aws-elasticbeanstalk-ec2-role --output json 2>/dev/null && echo "Instance profile exists" || echo "Instance profile NOT found"
+```
+
+**Create if missing:**
+```bash
+# Create the IAM role
+aws iam create-role \
+  --role-name aws-elasticbeanstalk-ec2-role \
+  --assume-role-policy-document '{
+    "Version": "2012-10-17",
+    "Statement": [{
+      "Effect": "Allow",
+      "Principal": {"Service": "ec2.amazonaws.com"},
+      "Action": "sts:AssumeRole"
+    }]
+  }' \
+  --output json
+
+# Attach required policies
+aws iam attach-role-policy \
+  --role-name aws-elasticbeanstalk-ec2-role \
+  --policy-arn arn:aws:iam::aws:policy/AWSElasticBeanstalkWebTier
+
+aws iam attach-role-policy \
+  --role-name aws-elasticbeanstalk-ec2-role \
+  --policy-arn arn:aws:iam::aws:policy/AWSElasticBeanstalkWorkerTier
+
+aws iam attach-role-policy \
+  --role-name aws-elasticbeanstalk-ec2-role \
+  --policy-arn arn:aws:iam::aws:policy/AWSElasticBeanstalkMulticontainerDocker
+
+# Create instance profile and add role
+aws iam create-instance-profile \
+  --instance-profile-name aws-elasticbeanstalk-ec2-role \
+  --output json
+
+aws iam add-role-to-instance-profile \
+  --instance-profile-name aws-elasticbeanstalk-ec2-role \
+  --role-name aws-elasticbeanstalk-ec2-role
+```
+
+### Specifying Roles During Environment Creation
+```bash
+aws elasticbeanstalk create-environment \
+  --application-name <app-name> \
+  --environment-name <env-name> \
+  --solution-stack-name "64bit Amazon Linux 2023 v6.0.0 running Node.js 18" \
+  --option-settings \
+    Namespace=aws:elasticbeanstalk:environment,OptionName=ServiceRole,Value=aws-elasticbeanstalk-service-role \
+    Namespace=aws:elasticbeanstalk:environment,OptionName=LoadBalancerType,Value=application \
+    Namespace=aws:autoscaling:launchconfiguration,OptionName=IamInstanceProfile,Value=aws-elasticbeanstalk-ec2-role \
+  --output json
+```
+
 ## Destructive Operations Warning
 
 **Before running terminate, rebuild, or force operations:**
@@ -75,6 +171,9 @@ aws elasticbeanstalk create-environment \
   --environment-name <env-name> \
   --solution-stack-name "64bit Amazon Linux 2023 v6.0.0 running Node.js 18" \
   --option-settings \
+    Namespace=aws:elasticbeanstalk:environment,OptionName=ServiceRole,Value=aws-elasticbeanstalk-service-role \
+    Namespace=aws:elasticbeanstalk:environment,OptionName=LoadBalancerType,Value=application \
+    Namespace=aws:autoscaling:launchconfiguration,OptionName=IamInstanceProfile,Value=aws-elasticbeanstalk-ec2-role \
     Namespace=aws:autoscaling:launchconfiguration,OptionName=InstanceType,Value=t3.medium \
     Namespace=aws:autoscaling:asg,OptionName=MinSize,Value=2 \
     Namespace=aws:autoscaling:asg,OptionName=MaxSize,Value=10 \

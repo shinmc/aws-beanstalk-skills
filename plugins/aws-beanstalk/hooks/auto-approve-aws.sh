@@ -80,4 +80,21 @@ EOF
   exit 0
 fi
 
+# Auto-approve aws iam commands for EB role management (get-role, get-instance-profile, create-role, attach-role-policy, create-instance-profile, add-role-to-instance-profile)
+if [[ "$command" =~ ^aws[[:space:]]+iam[[:space:]]+(get-role|get-instance-profile|create-role|attach-role-policy|create-instance-profile|add-role-to-instance-profile)[[:space:]] ]]; then
+  # Only auto-approve if related to elasticbeanstalk roles
+  if [[ "$command" == *"elasticbeanstalk"* ]]; then
+    cat <<'EOF'
+{
+  "hookSpecificOutput": {
+    "hookEventName": "PreToolUse",
+    "permissionDecision": "allow",
+    "permissionDecisionReason": "AWS IAM command auto-approved for EB role management"
+  }
+}
+EOF
+    exit 0
+  fi
+fi
+
 exit 0
