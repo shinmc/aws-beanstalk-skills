@@ -207,12 +207,12 @@ aws elasticbeanstalk describe-environments \
 ```bash
 # For Node.js
 aws elasticbeanstalk list-platform-versions \
-  --filters Type=ProgrammingLanguageName,Operator==,Values=Node.js \
+  --filters '[{"Type":"ProgrammingLanguageName","Operator":"=","Values":["Node.js"]}]' \
   --output json | jq '.PlatformSummaryList[] | {Name:.PlatformArn, Status:.PlatformStatus}'
 
 # For Python
 aws elasticbeanstalk list-platform-versions \
-  --filters Type=ProgrammingLanguageName,Operator==,Values=Python \
+  --filters '[{"Type":"ProgrammingLanguageName","Operator":"=","Values":["Python"]}]' \
   --output json | jq '.PlatformSummaryList[] | {Name:.PlatformArn, Status:.PlatformStatus}'
 
 # Show all supported platforms

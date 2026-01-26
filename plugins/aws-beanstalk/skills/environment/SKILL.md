@@ -355,16 +355,17 @@ Create identical environment from existing.
 
 ### Quick Clone (Recommended)
 ```bash
-# Step 1: Get source environment ID
+# Step 1: Get source environment ID and create unique template name
 SOURCE_ENV_ID=$(aws elasticbeanstalk describe-environments \
   --environment-names <source-env> \
   --query 'Environments[0].EnvironmentId' \
   --output text)
+TEMPLATE_NAME="clone-template-$(date +%s)"
 
 # Step 2: Create template from source
 aws elasticbeanstalk create-configuration-template \
   --application-name <app-name> \
-  --template-name clone-template-$(date +%s) \
+  --template-name $TEMPLATE_NAME \
   --environment-id $SOURCE_ENV_ID \
   --output json
 
@@ -372,7 +373,7 @@ aws elasticbeanstalk create-configuration-template \
 aws elasticbeanstalk create-environment \
   --application-name <app-name> \
   --environment-name <new-env-name> \
-  --template-name clone-template-$(date +%s) \
+  --template-name $TEMPLATE_NAME \
   --output json
 ```
 
