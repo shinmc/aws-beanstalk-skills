@@ -316,9 +316,87 @@ aws elasticbeanstalk create-environment \
   --output json
 ```
 
+## Restore Terminated Environment
+
+Restore a recently terminated environment (within retention period).
+
+### List Terminated Environments
+```bash
+aws elasticbeanstalk describe-environments \
+  --include-deleted \
+  --included-deleted-back-to $(date -u -v-14d +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u -d '14 days ago' +%Y-%m-%dT%H:%M:%SZ) \
+  --query 'Environments[?Status==`Terminated`].{Name:EnvironmentName,ID:EnvironmentId,Terminated:DateUpdated,App:ApplicationName}' \
+  --output table
+```
+
+### Restore Environment
+```bash
+aws elasticbeanstalk rebuild-environment \
+  --environment-id <env-id> \
+  --output json
+```
+
+**Notes:**
+- Environment must be within termination retention period
+- Use environment ID (e-xxxxxxxx), not name
+- Restores with same configuration
+- May take several minutes
+
+### Check Restore Progress
+```bash
+aws elasticbeanstalk describe-environments \
+  --environment-ids <env-id> \
+  --output json
+```
+
 ## Clone Environment
 
-Create identical environment from existing:
+Create identical environment from existing.
+
+### Quick Clone (Recommended)
+```bash
+# Step 1: Get source environment ID
+SOURCE_ENV_ID=$(aws elasticbeanstalk describe-environments \
+  --environment-names <source-env> \
+  --query 'Environments[0].EnvironmentId' \
+  --output text)
+
+# Step 2: Create template from source
+aws elasticbeanstalk create-configuration-template \
+  --application-name <app-name> \
+  --template-name clone-template-$(date +%s) \
+  --environment-id $SOURCE_ENV_ID \
+  --output json
+
+# Step 3: Create new environment from template
+aws elasticbeanstalk create-environment \
+  --application-name <app-name> \
+  --environment-name <new-env-name> \
+  --template-name clone-template-$(date +%s) \
+  --output json
+```
+
+### Clone with Different CNAME
+```bash
+aws elasticbeanstalk create-environment \
+  --application-name <app-name> \
+  --environment-name <new-env-name> \
+  --cname-prefix <new-cname> \
+  --template-name <template-name> \
+  --output json
+```
+
+### Clone with Different Version
+```bash
+aws elasticbeanstalk create-environment \
+  --application-name <app-name> \
+  --environment-name <new-env-name> \
+  --version-label "v2.0.0" \
+  --template-name <template-name> \
+  --output json
+```
+
+### Manual Clone (Full Control)
 ```bash
 # Get current config
 aws elasticbeanstalk describe-configuration-settings \

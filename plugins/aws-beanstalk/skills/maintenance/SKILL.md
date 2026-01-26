@@ -189,6 +189,112 @@ aws elasticbeanstalk update-environment \
   --output json
 ```
 
+## Platform Migration (eb migrate equivalent)
+
+Migrate an environment to a different platform version (e.g., Amazon Linux 2 to Amazon Linux 2023).
+
+### Check Migration Compatibility
+
+#### Step 1: Get Current Platform
+```bash
+aws elasticbeanstalk describe-environments \
+  --environment-names <env-name> \
+  --query 'Environments[0].{Platform:SolutionStackName,PlatformArn:PlatformArn}' \
+  --output json
+```
+
+#### Step 2: List Compatible Platforms
+```bash
+# For Node.js
+aws elasticbeanstalk list-platform-versions \
+  --filters Type=ProgrammingLanguageName,Operator==,Values=Node.js \
+  --output json | jq '.PlatformSummaryList[] | {Name:.PlatformArn, Status:.PlatformStatus}'
+
+# For Python
+aws elasticbeanstalk list-platform-versions \
+  --filters Type=ProgrammingLanguageName,Operator==,Values=Python \
+  --output json | jq '.PlatformSummaryList[] | {Name:.PlatformArn, Status:.PlatformStatus}'
+
+# Show all supported platforms
+aws elasticbeanstalk list-available-solution-stacks \
+  --output json | jq '.SolutionStacks[]' | grep -i "<language>"
+```
+
+### In-Place Migration (Direct Update)
+
+**Warning:** Causes downtime during update. Best for non-production.
+
+```bash
+aws elasticbeanstalk update-environment \
+  --environment-name <env-name> \
+  --solution-stack-name "64bit Amazon Linux 2023 v6.1.0 running Node.js 20" \
+  --output json
+```
+
+### Blue/Green Migration (Zero Downtime - Recommended)
+
+#### Step 1: Create New Environment on Target Platform
+```bash
+# Get current version
+VERSION=$(aws elasticbeanstalk describe-environments \
+  --environment-names <env-name> \
+  --query 'Environments[0].VersionLabel' \
+  --output text)
+
+# Create environment on new platform
+aws elasticbeanstalk create-environment \
+  --application-name <app-name> \
+  --environment-name <env-name>-migrated \
+  --version-label $VERSION \
+  --solution-stack-name "64bit Amazon Linux 2023 v6.1.0 running Node.js 20" \
+  --cname-prefix <env-name>-migrated \
+  --output json
+```
+
+#### Step 2: Wait for New Environment
+```bash
+aws elasticbeanstalk describe-environments \
+  --environment-names <env-name>-migrated \
+  --query 'Environments[0].{Status:Status,Health:Health}' \
+  --output json
+```
+
+#### Step 3: Test New Environment
+Verify at: `<env-name>-migrated.<region>.elasticbeanstalk.com`
+
+#### Step 4: Swap CNAMEs
+```bash
+aws elasticbeanstalk swap-environment-cnames \
+  --source-environment-name <env-name> \
+  --destination-environment-name <env-name>-migrated \
+  --output json
+```
+
+#### Step 5: Terminate Old Environment (after validation)
+```bash
+aws elasticbeanstalk terminate-environment \
+  --environment-name <env-name> \
+  --output json
+```
+
+### Common Migration Paths
+
+| From | To | Notes |
+|------|-----|-------|
+| Amazon Linux 2 | Amazon Linux 2023 | Check for glibc/library compatibility |
+| Node.js 16 | Node.js 20 | Update package.json engines |
+| Python 3.8 | Python 3.11 | Check deprecated syntax |
+| Java 8 (Corretto) | Java 17 (Corretto) | Update pom.xml/build.gradle |
+| Docker (AL2) | Docker (AL2023) | Rebuild images if needed |
+
+### Pre-Migration Checklist
+
+1. **Review deprecations** - Check for removed APIs/features
+2. **Test locally** - Run app on target runtime version
+3. **Update dependencies** - Ensure compatibility with new platform
+4. **Backup configuration** - Save current config template
+5. **Plan rollback** - Keep old environment until verified
+
 ## Operations Role
 
 ### Associate Role

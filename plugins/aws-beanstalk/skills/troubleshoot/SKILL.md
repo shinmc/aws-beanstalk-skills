@@ -2,7 +2,7 @@
 name: troubleshoot
 description: This skill should be used when the user asks to diagnose issues, fix problems, "why is it failing", "what's wrong", optimize performance, or reduce costs. Combines health, logs, and config analysis to provide recommendations.
 argument-hint: "[env-name]"
-allowed-tools: Bash(aws elasticbeanstalk:*), Bash(aws cloudwatch:*), Bash(curl:*), Bash(scripts/eb-api.sh:*)
+allowed-tools: Bash(aws elasticbeanstalk:*), Bash(aws cloudwatch:*), Bash(aws ec2:*), Bash(curl:*), Bash(scripts/eb-api.sh:*), Bash(ssh:*)
 ---
 
 # AWS Elastic Beanstalk Troubleshooting
@@ -72,6 +72,70 @@ aws elasticbeanstalk retrieve-environment-info \
 aws elasticbeanstalk describe-configuration-settings \
   --application-name <app-name> \
   --environment-name <env-name> \
+  --output json
+```
+
+## SSH Access to Instances
+
+When logs and metrics aren't enough, SSH into instances for direct debugging.
+
+### Get Instance IDs
+```bash
+aws elasticbeanstalk describe-environment-resources \
+  --environment-name <env-name> \
+  --query 'EnvironmentResources.Instances[].Id' \
+  --output json
+```
+
+### Get Instance Public IP
+```bash
+aws ec2 describe-instances \
+  --instance-ids <instance-id> \
+  --query 'Reservations[].Instances[].PublicIpAddress' \
+  --output text
+```
+
+### SSH to Instance
+```bash
+ssh -i <key-pair.pem> ec2-user@<public-ip>
+```
+
+**Notes:**
+- Key pair must match the `EC2KeyName` in launch configuration
+- Security group must allow SSH (port 22) from your IP
+- Amazon Linux 2/2023 uses `ec2-user`, other platforms may differ
+
+### Check Key Pair
+```bash
+aws elasticbeanstalk describe-configuration-settings \
+  --application-name <app-name> \
+  --environment-name <env-name> \
+  --output json | jq -r '.ConfigurationSettings[0].OptionSettings[] | select(.OptionName == "EC2KeyName") | .Value'
+```
+
+### Add Key Pair (if missing)
+```bash
+aws elasticbeanstalk update-environment \
+  --environment-name <env-name> \
+  --option-settings Namespace=aws:autoscaling:launchconfiguration,OptionName=EC2KeyName,Value=<key-name> \
+  --output json
+```
+
+### Check Security Group SSH Access
+```bash
+# Get security group
+SG=$(aws elasticbeanstalk describe-environment-resources \
+  --environment-name <env-name> \
+  --query 'EnvironmentResources.Instances[0].Id' \
+  --output text | xargs -I {} aws ec2 describe-instances \
+  --instance-ids {} \
+  --query 'Reservations[0].Instances[0].SecurityGroups[0].GroupId' \
+  --output text)
+
+# Check SSH rule
+aws ec2 describe-security-groups \
+  --group-ids $SG \
+  --query 'SecurityGroups[0].IpPermissions[?FromPort==`22`]' \
   --output json
 ```
 

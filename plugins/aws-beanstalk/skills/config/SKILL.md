@@ -193,6 +193,51 @@ aws elasticbeanstalk update-environment \
 
 ## Common Configuration Tasks
 
+### Scale Instances (eb scale equivalent)
+
+Scale to a specific number of instances:
+```bash
+# Scale to exactly N instances (set both min and max)
+aws elasticbeanstalk update-environment \
+  --environment-name <env-name> \
+  --option-settings \
+    Namespace=aws:autoscaling:asg,OptionName=MinSize,Value=<N> \
+    Namespace=aws:autoscaling:asg,OptionName=MaxSize,Value=<N> \
+  --output json
+```
+
+Scale with range (allow auto-scaling):
+```bash
+# Set scaling range
+aws elasticbeanstalk update-environment \
+  --environment-name <env-name> \
+  --option-settings \
+    Namespace=aws:autoscaling:asg,OptionName=MinSize,Value=2 \
+    Namespace=aws:autoscaling:asg,OptionName=MaxSize,Value=10 \
+  --output json
+```
+
+Check current scaling:
+```bash
+aws elasticbeanstalk describe-configuration-settings \
+  --application-name <app-name> \
+  --environment-name <env-name> \
+  --output json | jq '.ConfigurationSettings[0].OptionSettings[] | select(.Namespace == "aws:autoscaling:asg")'
+```
+
+### Configure Auto-Scaling Triggers
+```bash
+aws elasticbeanstalk update-environment \
+  --environment-name <env-name> \
+  --option-settings \
+    Namespace=aws:autoscaling:trigger,OptionName=MeasureName,Value=CPUUtilization \
+    Namespace=aws:autoscaling:trigger,OptionName=Unit,Value=Percent \
+    Namespace=aws:autoscaling:trigger,OptionName=LowerThreshold,Value=20 \
+    Namespace=aws:autoscaling:trigger,OptionName=UpperThreshold,Value=80 \
+    Namespace=aws:autoscaling:trigger,OptionName=BreachDuration,Value=5 \
+  --output json
+```
+
 ### Set Environment Variables
 ```bash
 aws elasticbeanstalk update-environment \
