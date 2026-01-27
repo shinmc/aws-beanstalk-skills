@@ -178,7 +178,7 @@ aws elasticbeanstalk create-configuration-template \
 aws elasticbeanstalk create-configuration-template \
   --application-name <app-name> \
   --template-name my-template \
-  --solution-stack-name "64bit Amazon Linux 2023 v6.0.0 running Node.js 18" \
+  --solution-stack-name "64bit Amazon Linux 2023 v6.7.2 running Node.js 20" \
   --option-settings file://options.json \
   --output json
 ```

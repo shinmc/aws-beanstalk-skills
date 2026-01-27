@@ -98,7 +98,7 @@ Environment: my-app-prod (Ready)
 Health: Green (Ok)
 Version: v1.2.3
 URL: my-app-prod.elasticbeanstalk.com
-Platform: 64bit Amazon Linux 2023 v6.0.0 running Node.js 18
+Platform: 64bit Amazon Linux 2023 v6.7.2 running Node.js 20
 ```
 
 ## Check Specific Application

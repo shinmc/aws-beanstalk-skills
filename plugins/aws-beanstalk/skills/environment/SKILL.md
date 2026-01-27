@@ -112,7 +112,7 @@ aws iam add-role-to-instance-profile \
 aws elasticbeanstalk create-environment \
   --application-name <app-name> \
   --environment-name <env-name> \
-  --solution-stack-name "64bit Amazon Linux 2023 v6.0.0 running Node.js 18" \
+  --solution-stack-name "64bit Amazon Linux 2023 v6.7.2 running Node.js 20" \
   --option-settings \
     Namespace=aws:elasticbeanstalk:environment,OptionName=ServiceRole,Value=aws-elasticbeanstalk-service-role \
     Namespace=aws:elasticbeanstalk:environment,OptionName=LoadBalancerType,Value=application \
@@ -141,7 +141,7 @@ Commands requiring extra caution:
 aws elasticbeanstalk create-environment \
   --application-name <app-name> \
   --environment-name <env-name> \
-  --solution-stack-name "64bit Amazon Linux 2023 v6.0.0 running Node.js 18" \
+  --solution-stack-name "64bit Amazon Linux 2023 v6.7.2 running Node.js 20" \
   --output json
 ```
 
@@ -151,7 +151,7 @@ aws elasticbeanstalk create-environment \
   --application-name <app-name> \
   --environment-name <env-name> \
   --version-label "v1.0.0" \
-  --solution-stack-name "64bit Amazon Linux 2023 v6.0.0 running Node.js 18" \
+  --solution-stack-name "64bit Amazon Linux 2023 v6.7.2 running Node.js 20" \
   --output json
 ```
 
@@ -169,7 +169,7 @@ aws elasticbeanstalk create-environment \
 aws elasticbeanstalk create-environment \
   --application-name <app-name> \
   --environment-name <env-name> \
-  --solution-stack-name "64bit Amazon Linux 2023 v6.0.0 running Node.js 18" \
+  --solution-stack-name "64bit Amazon Linux 2023 v6.7.2 running Node.js 20" \
   --option-settings \
     Namespace=aws:elasticbeanstalk:environment,OptionName=ServiceRole,Value=aws-elasticbeanstalk-service-role \
     Namespace=aws:elasticbeanstalk:environment,OptionName=LoadBalancerType,Value=application \
@@ -186,7 +186,7 @@ aws elasticbeanstalk create-environment \
   --application-name <app-name> \
   --environment-name my-app-prod \
   --cname-prefix my-app-prod \
-  --solution-stack-name "64bit Amazon Linux 2023 v6.0.0 running Node.js 18" \
+  --solution-stack-name "64bit Amazon Linux 2023 v6.7.2 running Node.js 20" \
   --output json
 ```
 
@@ -208,10 +208,10 @@ aws elasticbeanstalk list-available-solution-stacks \
 ```
 
 Common platforms:
-- Node.js: `"64bit Amazon Linux 2023 v6.0.0 running Node.js 18"`
-- Python: `"64bit Amazon Linux 2023 v4.0.0 running Python 3.11"`
-- Docker: `"64bit Amazon Linux 2023 v4.0.0 running Docker"`
-- Java: `"64bit Amazon Linux 2023 v4.0.0 running Corretto 17"`
+- Node.js: `"64bit Amazon Linux 2023 v6.7.2 running Node.js 20"`
+- Python: `"64bit Amazon Linux 2023 v4.9.1 running Python 3.11"`
+- Docker: `"64bit Amazon Linux 2023 v4.9.1 running Docker"`
+- Java: `"64bit Amazon Linux 2023 v4.8.2 running Corretto 17"`
 
 ## Terminate Environment
 
@@ -451,7 +451,7 @@ ID: e-xxxxxxxxxx
 Status: Launching
 Health: Grey (Pending)
 CNAME: my-app-prod.us-east-1.elasticbeanstalk.com
-Platform: 64bit Amazon Linux 2023 v6.0.0 running Node.js 18
+Platform: 64bit Amazon Linux 2023 v6.7.2 running Node.js 20
 
 Estimated time: 5-10 minutes
 

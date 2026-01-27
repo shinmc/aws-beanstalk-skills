@@ -121,7 +121,7 @@ aws elasticbeanstalk list-platform-versions \
 ```bash
 aws elasticbeanstalk update-environment \
   --environment-name <env-name> \
-  --solution-stack-name "64bit Amazon Linux 2023 v6.1.0 running Node.js 18" \
+  --solution-stack-name "64bit Amazon Linux 2023 v6.7.2 running Node.js 20" \
   --output json
 ```
 
@@ -129,7 +129,7 @@ Or by platform ARN:
 ```bash
 aws elasticbeanstalk update-environment \
   --environment-name <env-name> \
-  --platform-arn "arn:aws:elasticbeanstalk:<region>::platform/Node.js 18 running on 64bit Amazon Linux 2023/6.1.0" \
+  --platform-arn "arn:aws:elasticbeanstalk:<region>::platform/Node.js 20 running on 64bit Amazon Linux 2023/6.7.2" \
   --output json
 ```
 
@@ -227,7 +227,7 @@ aws elasticbeanstalk list-available-solution-stacks \
 ```bash
 aws elasticbeanstalk update-environment \
   --environment-name <env-name> \
-  --solution-stack-name "64bit Amazon Linux 2023 v6.1.0 running Node.js 20" \
+  --solution-stack-name "64bit Amazon Linux 2023 v6.7.2 running Node.js 20" \
   --output json
 ```
 
@@ -246,7 +246,7 @@ aws elasticbeanstalk create-environment \
   --application-name <app-name> \
   --environment-name <env-name>-migrated \
   --version-label $VERSION \
-  --solution-stack-name "64bit Amazon Linux 2023 v6.1.0 running Node.js 20" \
+  --solution-stack-name "64bit Amazon Linux 2023 v6.7.2 running Node.js 20" \
   --cname-prefix <env-name>-migrated \
   --output json
 ```
@@ -324,8 +324,8 @@ Update Level: minor
 
 Pending Actions:
   1. Platform Update (PlatformUpdate)
-     - Current: Node.js 18 v6.0.0
-     - Target: Node.js 18 v6.1.0
+     - Current: Node.js 20 v6.7.0
+     - Target: Node.js 20 v6.7.2
      - Scheduled: 2024-01-21 02:00 UTC
      - Action ID: abc-123
 
