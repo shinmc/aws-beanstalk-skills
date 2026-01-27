@@ -2,7 +2,6 @@
 name: environment
 description: This skill should be used when the user wants to create, terminate, rebuild, or swap environments, "create beanstalk environment", "new eb environment", "delete environment", perform blue/green deployments, or manage environment lifecycle. For configuration changes, use config skill. For deployments, use deploy skill.
 argument-hint: "[env-name]"
-disable-model-invocation: true
 allowed-tools: Bash(aws elasticbeanstalk:*), Bash(scripts/eb-api.sh:*)
 ---
 
