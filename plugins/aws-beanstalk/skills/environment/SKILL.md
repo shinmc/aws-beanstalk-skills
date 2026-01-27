@@ -136,6 +136,18 @@ Commands requiring extra caution:
 
 ## Create Environment
 
+> **Note:** Platform versions are updated frequently. Always verify the latest available version before creating an environment:
+> ```bash
+> # Node.js
+> aws elasticbeanstalk list-available-solution-stacks --query "SolutionStacks[?contains(@, 'Node.js 20')] | [0]" --output text
+> # Python
+> aws elasticbeanstalk list-available-solution-stacks --query "SolutionStacks[?contains(@, 'Python 3.11')] | [0]" --output text
+> # Docker
+> aws elasticbeanstalk list-available-solution-stacks --query "SolutionStacks[?contains(@, 'Docker') && contains(@, 'Amazon Linux 2023')] | [0]" --output text
+> # Java (Corretto)
+> aws elasticbeanstalk list-available-solution-stacks --query "SolutionStacks[?contains(@, 'Corretto 17')] | [0]" --output text
+> ```
+
 ### Basic Creation
 ```bash
 aws elasticbeanstalk create-environment \

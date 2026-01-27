@@ -102,6 +102,8 @@ Use when:
 
 ## Platform Updates
 
+> **Note:** Platform versions are updated frequently. Always verify the latest available version before updating.
+
 ### Check Current Platform
 ```bash
 aws elasticbeanstalk describe-environments \
@@ -112,6 +114,13 @@ aws elasticbeanstalk describe-environments \
 
 ### List Available Platforms
 ```bash
+# Get latest version for a specific platform
+aws elasticbeanstalk list-available-solution-stacks --query "SolutionStacks[?contains(@, 'Node.js 20')] | [0]" --output text
+aws elasticbeanstalk list-available-solution-stacks --query "SolutionStacks[?contains(@, 'Python 3.11')] | [0]" --output text
+aws elasticbeanstalk list-available-solution-stacks --query "SolutionStacks[?contains(@, 'Docker') && contains(@, 'Amazon Linux 2023')] | [0]" --output text
+aws elasticbeanstalk list-available-solution-stacks --query "SolutionStacks[?contains(@, 'Corretto 17')] | [0]" --output text
+
+# Or list all versions for a platform
 aws elasticbeanstalk list-platform-versions \
   --filters '[{"Type":"PlatformName","Operator":"contains","Values":["Node.js"]}]' \
   --output json
