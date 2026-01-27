@@ -1,6 +1,6 @@
 ---
 name: deploy
-description: This skill should be used when the user wants to deploy code to Elastic Beanstalk, says "deploy", "push to EB", "create version", or "update environment". For environment creation, use environment skill.
+description: This skill should be used when the user wants to deploy code to Elastic Beanstalk, says "deploy", "push to EB", "deploy to beanstalk", "eb deploy", "create version", or "update environment". For environment creation, use environment skill.
 argument-hint: "[version-label]"
 disable-model-invocation: true
 allowed-tools: Bash(aws elasticbeanstalk:*), Bash(aws s3:*), Bash(scripts/eb-api.sh:*)

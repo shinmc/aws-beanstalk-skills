@@ -1,6 +1,6 @@
 ---
 name: config
-description: This skill should be used when the user asks "show config", "what's configured", "change settings", "environment variables", "scaling settings", or wants to read/modify Elastic Beanstalk configuration. For environment creation, use environment skill.
+description: This skill should be used when the user asks "show config", "what's configured", "change settings", "environment variables", "scaling settings", "beanstalk config", "eb config", "configure beanstalk", or wants to read/modify Elastic Beanstalk configuration. For environment creation, use environment skill.
 argument-hint: "[env-name]"
 allowed-tools: Bash(aws elasticbeanstalk:*), Bash(scripts/eb-api.sh:*)
 ---

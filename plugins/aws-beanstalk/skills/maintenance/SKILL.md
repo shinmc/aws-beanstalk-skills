@@ -1,6 +1,6 @@
 ---
 name: maintenance
-description: This skill should be used when the user asks about managed actions, platform updates, "apply patches", "restart servers", or maintenance operations. For configuration changes, use config skill.
+description: This skill should be used when the user asks about managed actions, platform updates, "apply patches", "restart servers", "update beanstalk platform", "beanstalk maintenance", "eb maintenance", or maintenance operations. For configuration changes, use config skill.
 argument-hint: "[env-name]"
 disable-model-invocation: true
 allowed-tools: Bash(aws elasticbeanstalk:*), Bash(scripts/eb-api.sh:*)

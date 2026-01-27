@@ -1,6 +1,6 @@
 ---
 name: app
-description: This skill should be used when the user wants to create, delete, or manage Elastic Beanstalk applications, configure resource lifecycle, or manage application versions. For environments, use environment skill.
+description: This skill should be used when the user wants to create, delete, or manage Elastic Beanstalk applications, "create beanstalk app", "new eb application", "list applications", "my beanstalk apps", configure resource lifecycle, or manage application versions. For environments, use environment skill.
 argument-hint: "[app-name]"
 disable-model-invocation: true
 allowed-tools: Bash(aws elasticbeanstalk:*), Bash(scripts/eb-api.sh:*)

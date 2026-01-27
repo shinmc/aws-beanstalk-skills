@@ -1,6 +1,6 @@
 ---
 name: health
-description: This skill should be used when the user asks about environment health, instance health, "is it healthy", "why is it yellow/red", CPU/memory usage, or latency metrics. For basic status, use status skill. For troubleshooting, use troubleshoot skill.
+description: This skill should be used when the user asks about environment health, instance health, "is it healthy", "why is it yellow/red", "check health", "how is my beanstalk", "is my app healthy", "beanstalk health", CPU/memory usage, or latency metrics. For basic status, use status skill. For troubleshooting, use troubleshoot skill.
 argument-hint: "[env-name]"
 allowed-tools: Bash(aws elasticbeanstalk:*), Bash(scripts/eb-api.sh:*)
 ---

@@ -1,6 +1,6 @@
 ---
 name: logs
-description: This skill should be used when the user asks for logs, events, "show me the logs", "what happened", "check errors", "deployment events", or needs to debug issues. Covers both application logs and environment events.
+description: This skill should be used when the user asks for logs, events, "show me the logs", "what happened", "check errors", "deployment events", "beanstalk logs", "eb logs", "view logs", "get logs", or needs to debug issues. Covers both application logs and environment events.
 argument-hint: "[env-name]"
 allowed-tools: Bash(aws elasticbeanstalk:*), Bash(curl:*), Bash(scripts/eb-api.sh:*)
 ---

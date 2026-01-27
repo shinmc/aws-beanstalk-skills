@@ -1,6 +1,6 @@
 ---
 name: eb-docs
-description: This skill should be used when the user asks about Elastic Beanstalk documentation, best practices, "how do I", platform-specific guidance, or needs reference information.
+description: This skill should be used when the user asks about Elastic Beanstalk documentation, best practices, "how do I", "beanstalk docs", "eb documentation", "beanstalk help", platform-specific guidance, or needs reference information.
 argument-hint: "[topic]"
 allowed-tools: Bash(curl:*), WebFetch
 ---

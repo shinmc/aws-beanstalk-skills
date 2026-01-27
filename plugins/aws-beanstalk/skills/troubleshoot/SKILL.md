@@ -1,6 +1,6 @@
 ---
 name: troubleshoot
-description: This skill should be used when the user asks to diagnose issues, fix problems, "why is it failing", "what's wrong", optimize performance, or reduce costs. Combines health, logs, and config analysis to provide recommendations.
+description: This skill should be used when the user asks to diagnose issues, fix problems, "why is it failing", "what's wrong", "my beanstalk is broken", "debug beanstalk", "beanstalk not working", optimize performance, or reduce costs. Combines health, logs, and config analysis to provide recommendations.
 argument-hint: "[env-name]"
 allowed-tools: Bash(aws elasticbeanstalk:*), Bash(aws cloudwatch:*), Bash(aws ec2:*), Bash(curl:*), Bash(scripts/eb-api.sh:*), Bash(ssh:*)
 ---

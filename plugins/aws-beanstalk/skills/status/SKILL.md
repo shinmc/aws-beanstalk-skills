@@ -1,6 +1,6 @@
 ---
 name: status
-description: This skill should be used when the user asks "eb status", "environment status", "what's running", "is it deployed", or about current deployment state. NOT for logs (use logs skill), NOT for detailed health metrics (use health skill).
+description: This skill should be used when the user asks "eb status", "environment status", "what's running", "is it deployed", "check my beanstalk", "check environments", "list environments", "show my aws environments", "elastic beanstalk status", or about current deployment state. NOT for logs (use logs skill), NOT for detailed health metrics (use health skill).
 argument-hint: "[env-name]"
 allowed-tools: Bash(aws elasticbeanstalk:*), Bash(scripts/eb-api.sh:*)
 ---
