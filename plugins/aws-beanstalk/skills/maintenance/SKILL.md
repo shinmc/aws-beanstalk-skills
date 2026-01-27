@@ -114,31 +114,30 @@ aws elasticbeanstalk describe-environments \
 
 ### List Available Platforms
 ```bash
-# Get latest version for a specific platform
-aws elasticbeanstalk list-available-solution-stacks --query "SolutionStacks[?contains(@, 'Node.js 20')] | [0]" --output text
-aws elasticbeanstalk list-available-solution-stacks --query "SolutionStacks[?contains(@, 'Python 3.11')] | [0]" --output text
-aws elasticbeanstalk list-available-solution-stacks --query "SolutionStacks[?contains(@, 'Docker') && contains(@, 'Amazon Linux 2023')] | [0]" --output text
-aws elasticbeanstalk list-available-solution-stacks --query "SolutionStacks[?contains(@, 'Corretto 17')] | [0]" --output text
+# Get latest version (replace <platform> with: Node.js 20, Python 3.11, Corretto 17, etc.)
+PLATFORM=$(aws elasticbeanstalk list-available-solution-stacks --query "SolutionStacks[?contains(@, '<platform>')] | [0]" --output text)
+echo $PLATFORM
 
 # Or list all versions for a platform
 aws elasticbeanstalk list-platform-versions \
-  --filters '[{"Type":"PlatformName","Operator":"contains","Values":["Node.js"]}]' \
+  --filters '[{"Type":"PlatformName","Operator":"contains","Values":["<platform>"]}]' \
   --output json
 ```
 
 ### Manual Platform Update
 ```bash
+# Uses $PLATFORM from "List Available Platforms" above
 aws elasticbeanstalk update-environment \
   --environment-name <env-name> \
-  --solution-stack-name "64bit Amazon Linux 2023 v6.7.2 running Node.js 20" \
+  --solution-stack-name "$PLATFORM" \
   --output json
 ```
 
-Or by platform ARN:
+Or by platform ARN (get ARN from `list-platform-versions`):
 ```bash
 aws elasticbeanstalk update-environment \
   --environment-name <env-name> \
-  --platform-arn "arn:aws:elasticbeanstalk:<region>::platform/Node.js 20 running on 64bit Amazon Linux 2023/6.7.2" \
+  --platform-arn "<platform-arn-from-list-platform-versions>" \
   --output json
 ```
 
@@ -234,9 +233,10 @@ aws elasticbeanstalk list-available-solution-stacks \
 **Warning:** Causes downtime during update. Best for non-production.
 
 ```bash
+# First, set $PLATFORM (see "List Available Platforms" above)
 aws elasticbeanstalk update-environment \
   --environment-name <env-name> \
-  --solution-stack-name "64bit Amazon Linux 2023 v6.7.2 running Node.js 20" \
+  --solution-stack-name "$PLATFORM" \
   --output json
 ```
 
@@ -244,18 +244,16 @@ aws elasticbeanstalk update-environment \
 
 #### Step 1: Create New Environment on Target Platform
 ```bash
-# Get current version
-VERSION=$(aws elasticbeanstalk describe-environments \
-  --environment-names <env-name> \
-  --query 'Environments[0].VersionLabel' \
-  --output text)
+# Get current version and target platform
+VERSION=$(aws elasticbeanstalk describe-environments --environment-names <env-name> --query 'Environments[0].VersionLabel' --output text)
+PLATFORM=$(aws elasticbeanstalk list-available-solution-stacks --query "SolutionStacks[?contains(@, '<platform>')] | [0]" --output text)
 
 # Create environment on new platform
 aws elasticbeanstalk create-environment \
   --application-name <app-name> \
   --environment-name <env-name>-migrated \
   --version-label $VERSION \
-  --solution-stack-name "64bit Amazon Linux 2023 v6.7.2 running Node.js 20" \
+  --solution-stack-name "$PLATFORM" \
   --cname-prefix <env-name>-migrated \
   --output json
 ```

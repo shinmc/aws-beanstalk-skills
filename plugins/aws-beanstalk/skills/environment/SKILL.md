@@ -109,10 +109,11 @@ aws iam add-role-to-instance-profile \
 
 ### Specifying Roles During Environment Creation
 ```bash
+# First, set $PLATFORM (see "Get Latest Platform Version" in Create Environment section)
 aws elasticbeanstalk create-environment \
   --application-name <app-name> \
   --environment-name <env-name> \
-  --solution-stack-name "64bit Amazon Linux 2023 v6.7.2 running Node.js 20" \
+  --solution-stack-name "$PLATFORM" \
   --option-settings \
     Namespace=aws:elasticbeanstalk:environment,OptionName=ServiceRole,Value=aws-elasticbeanstalk-service-role \
     Namespace=aws:elasticbeanstalk:environment,OptionName=LoadBalancerType,Value=application \
@@ -136,24 +137,28 @@ Commands requiring extra caution:
 
 ## Create Environment
 
-> **Note:** Platform versions are updated frequently. Always verify the latest available version before creating an environment:
-> ```bash
-> # Node.js
-> aws elasticbeanstalk list-available-solution-stacks --query "SolutionStacks[?contains(@, 'Node.js 20')] | [0]" --output text
-> # Python
-> aws elasticbeanstalk list-available-solution-stacks --query "SolutionStacks[?contains(@, 'Python 3.11')] | [0]" --output text
-> # Docker
-> aws elasticbeanstalk list-available-solution-stacks --query "SolutionStacks[?contains(@, 'Docker') && contains(@, 'Amazon Linux 2023')] | [0]" --output text
-> # Java (Corretto)
-> aws elasticbeanstalk list-available-solution-stacks --query "SolutionStacks[?contains(@, 'Corretto 17')] | [0]" --output text
-> ```
+### Get Latest Platform Version (Run First)
+
+Always fetch the latest platform version before creating an environment:
+```bash
+PLATFORM=$(aws elasticbeanstalk list-available-solution-stacks --query "SolutionStacks[?contains(@, '<platform>')] | [0]" --output text)
+echo $PLATFORM
+```
+
+Replace `<platform>` with your target:
+- Node.js: `Node.js 20`, `Node.js 22`, `Node.js 24`
+- Python: `Python 3.9`, `Python 3.11`, `Python 3.12`, `Python 3.13`
+- Docker: `Docker') && contains(@, 'Amazon Linux 2023`
+- Java: `Corretto 8`, `Corretto 11`, `Corretto 17`, `Corretto 21`
+
+> **Note:** All commands below assume `$PLATFORM` is set.
 
 ### Basic Creation
 ```bash
 aws elasticbeanstalk create-environment \
   --application-name <app-name> \
   --environment-name <env-name> \
-  --solution-stack-name "64bit Amazon Linux 2023 v6.7.2 running Node.js 20" \
+  --solution-stack-name "$PLATFORM" \
   --output json
 ```
 
@@ -163,7 +168,7 @@ aws elasticbeanstalk create-environment \
   --application-name <app-name> \
   --environment-name <env-name> \
   --version-label "v1.0.0" \
-  --solution-stack-name "64bit Amazon Linux 2023 v6.7.2 running Node.js 20" \
+  --solution-stack-name "$PLATFORM" \
   --output json
 ```
 
@@ -181,7 +186,7 @@ aws elasticbeanstalk create-environment \
 aws elasticbeanstalk create-environment \
   --application-name <app-name> \
   --environment-name <env-name> \
-  --solution-stack-name "64bit Amazon Linux 2023 v6.7.2 running Node.js 20" \
+  --solution-stack-name "$PLATFORM" \
   --option-settings \
     Namespace=aws:elasticbeanstalk:environment,OptionName=ServiceRole,Value=aws-elasticbeanstalk-service-role \
     Namespace=aws:elasticbeanstalk:environment,OptionName=LoadBalancerType,Value=application \
@@ -198,7 +203,7 @@ aws elasticbeanstalk create-environment \
   --application-name <app-name> \
   --environment-name my-app-prod \
   --cname-prefix my-app-prod \
-  --solution-stack-name "64bit Amazon Linux 2023 v6.7.2 running Node.js 20" \
+  --solution-stack-name "$PLATFORM" \
   --output json
 ```
 
@@ -215,15 +220,15 @@ aws elasticbeanstalk check-dns-availability \
 
 Find available platforms:
 ```bash
-aws elasticbeanstalk list-available-solution-stacks \
-  --output json | jq '.SolutionStacks[]' | grep -i <platform>
-```
+# List all platforms
+aws elasticbeanstalk list-available-solution-stacks --output json | jq '.SolutionStacks[]'
 
-Common platforms:
-- Node.js: `"64bit Amazon Linux 2023 v6.7.2 running Node.js 20"`
-- Python: `"64bit Amazon Linux 2023 v4.9.1 running Python 3.11"`
-- Docker: `"64bit Amazon Linux 2023 v4.9.1 running Docker"`
-- Java: `"64bit Amazon Linux 2023 v4.8.2 running Corretto 17"`
+# Filter by keyword
+aws elasticbeanstalk list-available-solution-stacks --output json | jq '.SolutionStacks[]' | grep -i <platform>
+
+# Get latest version
+aws elasticbeanstalk list-available-solution-stacks --query "SolutionStacks[?contains(@, '<platform>')] | [0]" --output text
+```
 
 ## Terminate Environment
 

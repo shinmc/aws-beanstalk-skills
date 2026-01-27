@@ -175,23 +175,14 @@ aws elasticbeanstalk create-configuration-template \
 
 ### Create Template with Settings
 
-> **Note:** Verify the latest platform version before creating:
-> ```bash
-> # Node.js
-> aws elasticbeanstalk list-available-solution-stacks --query "SolutionStacks[?contains(@, 'Node.js 20')] | [0]" --output text
-> # Python
-> aws elasticbeanstalk list-available-solution-stacks --query "SolutionStacks[?contains(@, 'Python 3.11')] | [0]" --output text
-> # Docker
-> aws elasticbeanstalk list-available-solution-stacks --query "SolutionStacks[?contains(@, 'Docker') && contains(@, 'Amazon Linux 2023')] | [0]" --output text
-> # Java (Corretto)
-> aws elasticbeanstalk list-available-solution-stacks --query "SolutionStacks[?contains(@, 'Corretto 17')] | [0]" --output text
-> ```
-
 ```bash
+# Get latest platform (replace <platform> with: Node.js 20, Python 3.11, Corretto 17, etc.)
+PLATFORM=$(aws elasticbeanstalk list-available-solution-stacks --query "SolutionStacks[?contains(@, '<platform>')] | [0]" --output text)
+
 aws elasticbeanstalk create-configuration-template \
   --application-name <app-name> \
   --template-name my-template \
-  --solution-stack-name "64bit Amazon Linux 2023 v6.7.2 running Node.js 20" \
+  --solution-stack-name "$PLATFORM" \
   --option-settings file://options.json \
   --output json
 ```
