@@ -113,7 +113,7 @@ aws elasticbeanstalk describe-environments \
 ### List Available Platforms
 ```bash
 aws elasticbeanstalk list-platform-versions \
-  --filters Type=PlatformName,Operator=contains,Values=Node.js \
+  --filters '[{"Type":"PlatformName","Operator":"contains","Values":["Node.js"]}]' \
   --output json
 ```
 
@@ -129,7 +129,7 @@ Or by platform ARN:
 ```bash
 aws elasticbeanstalk update-environment \
   --environment-name <env-name> \
-  --platform-arn arn:aws:elasticbeanstalk:<region>::platform/Node.js 18/6.1.0 \
+  --platform-arn "arn:aws:elasticbeanstalk:<region>::platform/Node.js 18 running on 64bit Amazon Linux 2023/6.1.0" \
   --output json
 ```
 
