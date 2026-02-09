@@ -1,367 +1,130 @@
 ---
 name: config
-description: This skill should be used when the user asks "show config", "what's configured", "change settings", "environment variables", "scaling settings", "beanstalk config", "eb config", "configure beanstalk", or wants to read/modify Elastic Beanstalk configuration. For environment creation, use environment skill.
-argument-hint: "[env-name]"
-allowed-tools: Bash(aws elasticbeanstalk:*), Bash(scripts/eb-api.sh:*)
+description: This skill should be used when the user asks "show config", "what's configured", "change settings", "environment variables", "scaling settings", "eb config", "eb setenv", "eb printenv", "eb scale", "set env vars", "change instance type", "configure scaling", "HTTPS listener", "enhanced health", "config template", "tags", or wants to read/modify Elastic Beanstalk configuration. For environment creation use environment skill. For SSL certificate setup use eb-infra skill.
 ---
 
-# AWS Elastic Beanstalk Configuration
+# Configuration
 
-Query, validate, and update Elastic Beanstalk environment configuration.
+Read, update, and manage Elastic Beanstalk environment configuration using the EB CLI.
 
 ## When to Use
 
-- User asks "what's the config", "show settings"
-- User wants to add/change environment variables
-- User asks about scaling, instance type, load balancer settings
-- User says "validate my config", "update settings"
+- View or edit environment configuration
+- Set or view environment variables
+- Scale instances
+- Save/apply configuration templates
+- Manage environment tags
+- Configure HTTPS, scaling, instance type, enhanced health
 
 ## When NOT to Use
 
-- For creating new environments → use `environment` skill
-- For deploying new versions → use `deploy` skill
-- For health status → use `health` skill
+- Creating environments → use `environment` skill
+- SSL certificate management → use `eb-infra` skill
+- Deploying code → use `deploy` skill
+- Secrets Manager / SSM → use `eb-infra` skill
 
-## Read Current Configuration
+---
 
-Get all configuration settings:
+## Interactive Config Editor
+
 ```bash
-aws elasticbeanstalk describe-configuration-settings \
-  --application-name <app-name> \
-  --environment-name <env-name> \
-  --output json
+eb config
+eb config <env-name>
 ```
 
-## Configuration Namespaces
+## Environment Variables
 
-Key namespaces for common settings:
-
-### Environment Variables
-```
-aws:elasticbeanstalk:application:environment
-```
-
-### Auto Scaling
-```
-aws:autoscaling:asg
-- MinSize, MaxSize, Cooldown
-
-aws:autoscaling:launchconfiguration
-- InstanceType, EC2KeyName, IamInstanceProfile
-
-aws:autoscaling:trigger
-- MeasureName, LowerThreshold, UpperThreshold
-```
-
-### Load Balancer
-```
-aws:elb:loadbalancer
-- CrossZone, SecurityGroups
-
-aws:elb:listener
-- ListenerProtocol, InstanceProtocol, InstancePort
-
-aws:elasticbeanstalk:environment:process:default
-- HealthCheckPath, HealthCheckInterval
-```
-
-### Environment
-```
-aws:elasticbeanstalk:environment
-- EnvironmentType (SingleInstance, LoadBalanced)
-- ServiceRole
-
-aws:elasticbeanstalk:healthreporting:system
-- SystemType (enhanced, basic)
-```
-
-## View Available Options
-
-List all configurable options for a platform:
 ```bash
-aws elasticbeanstalk describe-configuration-options \
-  --environment-name <env-name> \
-  --output json
+eb printenv                              # View
+eb printenv <env-name>                   # View specific env
+eb setenv KEY1=value1 KEY2=value2        # Set
+eb setenv KEY1=                          # Remove
 ```
 
-Filter by namespace:
+## Quick Scale
+
 ```bash
-aws elasticbeanstalk describe-configuration-options \
-  --environment-name <env-name> \
-  --options Namespace=aws:autoscaling:asg \
-  --output json
+eb scale <number>
+eb scale <number> <env-name>
 ```
 
-## Update Configuration
+## Save/Apply Configuration Templates
 
-### Single Option
 ```bash
-aws elasticbeanstalk update-environment \
-  --environment-name <env-name> \
-  --option-settings \
-    Namespace=aws:elasticbeanstalk:application:environment,OptionName=NODE_ENV,Value=production \
-  --output json
+eb config save --cfg <config-name>       # Save
+eb config --cfg <config-name>            # Apply
 ```
 
-### Multiple Options
-```bash
-aws elasticbeanstalk update-environment \
-  --environment-name <env-name> \
-  --option-settings \
-    Namespace=aws:autoscaling:asg,OptionName=MinSize,Value=2 \
-    Namespace=aws:autoscaling:asg,OptionName=MaxSize,Value=10 \
-    Namespace=aws:autoscaling:launchconfiguration,OptionName=InstanceType,Value=t3.medium \
-  --output json
-```
+## Validate Configuration Before Applying
 
-### Using JSON File
-```bash
-# Create options.json
-cat > options.json << 'EOF'
-[
-  {
-    "Namespace": "aws:autoscaling:asg",
-    "OptionName": "MinSize",
-    "Value": "2"
-  },
-  {
-    "Namespace": "aws:autoscaling:asg",
-    "OptionName": "MaxSize",
-    "Value": "10"
-  }
-]
-EOF
-
-aws elasticbeanstalk update-environment \
-  --environment-name <env-name> \
-  --option-settings file://options.json \
-  --output json
-```
-
-## Validate Configuration
-
-Before applying changes:
 ```bash
 aws elasticbeanstalk validate-configuration-settings \
   --application-name <app-name> \
   --environment-name <env-name> \
-  --option-settings \
-    Namespace=aws:autoscaling:asg,OptionName=MinSize,Value=2 \
-  --output json
-```
-
-Response shows validation status:
-```json
-{
-  "Messages": [
-    {
-      "Message": "Configuration is valid",
-      "Severity": "info"
-    }
-  ]
-}
-```
-
-## Configuration Templates
-
-### Create Template from Environment
-```bash
-aws elasticbeanstalk create-configuration-template \
-  --application-name <app-name> \
-  --template-name production-template \
-  --environment-id <env-id> \
-  --output json
-```
-
-### Create Template with Settings
-
-```bash
-# Get latest platform (replace <platform> with: Node.js 20, Python 3.11, Corretto 17, etc.)
-PLATFORM=$(aws elasticbeanstalk list-available-solution-stacks --query "SolutionStacks[?contains(@, '<platform>')] | [0]" --output text)
-
-aws elasticbeanstalk create-configuration-template \
-  --application-name <app-name> \
-  --template-name my-template \
-  --solution-stack-name "$PLATFORM" \
   --option-settings file://options.json \
   --output json
 ```
 
-### Apply Template
+## Tag Management
+
 ```bash
-aws elasticbeanstalk update-environment \
-  --environment-name <env-name> \
-  --template-name production-template \
-  --output json
+eb tags --list                           # List tags
+eb tags --add "Team=backend,Env=prod"    # Add
+eb tags --update "Env=staging"           # Update
+eb tags --delete "OldTag"                # Delete
 ```
 
 ## Common Configuration Tasks
 
-### Scale Instances (eb scale equivalent)
-
-Scale to a specific number of instances:
-```bash
-# Scale to exactly N instances (set both min and max)
-aws elasticbeanstalk update-environment \
-  --environment-name <env-name> \
-  --option-settings \
-    Namespace=aws:autoscaling:asg,OptionName=MinSize,Value=<N> \
-    Namespace=aws:autoscaling:asg,OptionName=MaxSize,Value=<N> \
-  --output json
+**HTTPS listener:**
+```yaml
+aws:elbv2:listener:443:
+  ListenerEnabled: 'true'
+  Protocol: HTTPS
+  SSLCertificateArns: arn:aws:acm:region:account:certificate/cert-id
 ```
 
-Scale with range (allow auto-scaling):
-```bash
-# Set scaling range
-aws elasticbeanstalk update-environment \
-  --environment-name <env-name> \
-  --option-settings \
-    Namespace=aws:autoscaling:asg,OptionName=MinSize,Value=2 \
-    Namespace=aws:autoscaling:asg,OptionName=MaxSize,Value=10 \
-  --output json
+**Scaling:**
+```yaml
+aws:autoscaling:asg:
+  MinSize: '2'
+  MaxSize: '10'
+aws:autoscaling:trigger:
+  MeasureName: CPUUtilization
+  UpperThreshold: '70'
 ```
 
-Check current scaling:
-```bash
-aws elasticbeanstalk describe-configuration-settings \
-  --application-name <app-name> \
-  --environment-name <env-name> \
-  --output json | jq '.ConfigurationSettings[0].OptionSettings[] | select(.Namespace == "aws:autoscaling:asg")'
+**Instance type:**
+```yaml
+aws:autoscaling:launchconfiguration:
+  InstanceType: t3.medium
 ```
 
-### Configure Auto-Scaling Triggers
-```bash
-aws elasticbeanstalk update-environment \
-  --environment-name <env-name> \
-  --option-settings \
-    Namespace=aws:autoscaling:trigger,OptionName=MeasureName,Value=CPUUtilization \
-    Namespace=aws:autoscaling:trigger,OptionName=Unit,Value=Percent \
-    Namespace=aws:autoscaling:trigger,OptionName=LowerThreshold,Value=20 \
-    Namespace=aws:autoscaling:trigger,OptionName=UpperThreshold,Value=80 \
-    Namespace=aws:autoscaling:trigger,OptionName=BreachDuration,Value=5 \
-  --output json
+**Enhanced health:**
+```yaml
+aws:elasticbeanstalk:healthreporting:system:
+  SystemType: enhanced
 ```
 
-### Set Environment Variables
-```bash
-aws elasticbeanstalk update-environment \
-  --environment-name <env-name> \
-  --option-settings \
-    Namespace=aws:elasticbeanstalk:application:environment,OptionName=DATABASE_URL,Value=postgres://... \
-    Namespace=aws:elasticbeanstalk:application:environment,OptionName=API_KEY,Value=secret123 \
-  --output json
+## Platform Gotchas
+
+**AL2023/AL2 Node.js:** The `aws:elasticbeanstalk:container:nodejs` namespace (NodeCommand, NodeVersion, etc.) is **NOT supported** on Amazon Linux 2 or AL2023. It only works on legacy Amazon Linux 1 (AMI). On AL2/AL2023, use a `Procfile` instead:
+
+```
+# Procfile
+web: node app.js
 ```
 
-### Change Instance Type
-```bash
-aws elasticbeanstalk update-environment \
-  --environment-name <env-name> \
-  --option-settings \
-    Namespace=aws:autoscaling:launchconfiguration,OptionName=InstanceType,Value=t3.large \
-  --output json
-```
-
-### Enable Enhanced Health
-```bash
-aws elasticbeanstalk update-environment \
-  --environment-name <env-name> \
-  --option-settings \
-    Namespace=aws:elasticbeanstalk:healthreporting:system,OptionName=SystemType,Value=enhanced \
-  --output json
-```
-
-### Configure Health Check
-```bash
-aws elasticbeanstalk update-environment \
-  --environment-name <env-name> \
-  --option-settings \
-    Namespace=aws:elasticbeanstalk:environment:process:default,OptionName=HealthCheckPath,Value=/health \
-    Namespace=aws:elasticbeanstalk:environment:process:default,OptionName=HealthCheckInterval,Value=15 \
-  --output json
-```
-
-## Platform-Specific Settings
-
-### Node.js
-```
-aws:elasticbeanstalk:container:nodejs
-- NodeVersion, NodeCommand, ProxyServer
-```
-
-### Python
-```
-aws:elasticbeanstalk:container:python
-- WSGIPath, NumProcesses, NumThreads
-```
-
-### Docker
-```
-aws:elasticbeanstalk:environment:proxy
-- ProxyServer (nginx, none)
-```
-
-## Presenting Configuration
-
-When showing config:
-- Group by category (scaling, networking, environment vars)
-- Highlight non-default values
-- Show current vs. pending changes
-
-Example output:
-```
-=== Environment: my-app-prod ===
-
-Scaling:
-  Instance Type: t3.medium
-  Min Instances: 2
-  Max Instances: 10
-
-Environment Variables:
-  NODE_ENV: production
-  DATABASE_URL: ********
-  API_KEY: ********
-
-Health Check:
-  Path: /health
-  Interval: 15 seconds
-
-Load Balancer:
-  Type: application
-  Cross-Zone: enabled
-```
-
-## Error Handling
-
-### Invalid Option
-```
-Option not valid for this platform. Check available options:
-aws elasticbeanstalk describe-configuration-options --environment-name <env>
-```
-
-### Validation Error
-```
-Configuration validation failed:
-- MinSize cannot be greater than MaxSize
-```
-
-### Update In Progress
-```
-Cannot update - environment update already in progress.
-Wait for current update to complete.
-```
+---
 
 ## Composability
 
-- **Check current status**: Use `status` skill
-- **Deploy changes**: Use `deploy` skill
-- **Analyze issues**: Use `troubleshoot` skill
-- **View events after update**: Use `logs` skill
+- **Deploy after config change**: Use `deploy` skill
+- **Check status**: Use `status` skill
+- **Create new environment**: Use `environment` skill
+- **SSL/secrets/database config**: Use `eb-infra` skill
 
 ## Additional Resources
 
-For detailed reference information, see the shared reference files:
-
-- [Configuration Options](../_shared/references/config-options.md) - All available configuration namespaces and options
-- [Health States](../_shared/references/health-states.md) - Health colors, statuses, and thresholds
-- [Cost Optimization](../_shared/references/cost-optimization.md) - Instance sizing, scaling, and cost-saving strategies
-- [Platforms](../_shared/references/platforms.md) - Platform-specific configuration and requirements
+- [Configuration Options](../_shared/references/config-options.md)
+- [Cost Optimization](../_shared/references/cost-optimization.md)

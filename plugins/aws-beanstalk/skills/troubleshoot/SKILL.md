@@ -1,419 +1,158 @@
 ---
 name: troubleshoot
-description: This skill should be used when the user asks to diagnose issues, fix problems, "why is it failing", "what's wrong", "my beanstalk is broken", "debug beanstalk", "beanstalk not working", optimize performance, or reduce costs. Combines health, logs, and config analysis to provide recommendations.
-argument-hint: "[env-name]"
-allowed-tools: Bash(aws elasticbeanstalk:*), Bash(aws cloudwatch:*), Bash(aws ec2:*), Bash(curl:*), Bash(scripts/eb-api.sh:*), Bash(ssh:*)
+description: This skill should be used when the user asks to diagnose issues, fix problems, "why is it failing", "what's wrong", "my beanstalk is broken", "debug beanstalk", "beanstalk not working", "health check failure", "deployment failed", "high latency", "out of memory", "502 bad gateway", "red health", "yellow health", or needs help diagnosing any Elastic Beanstalk issue. For viewing raw logs use logs skill. For routine status checks use status skill.
 ---
 
-# AWS Elastic Beanstalk Troubleshooting
+# Troubleshoot
 
-Diagnose issues, suggest fixes, and optimize Elastic Beanstalk environments.
-
-**This is the aggregator skill** - it combines data from health, logs, config, and metrics to provide comprehensive diagnosis and recommendations.
+Diagnose issues, debug failures, and resolve common Elastic Beanstalk problems using a structured workflow.
 
 ## When to Use
 
-- User asks "why is it failing", "what's wrong"
-- User wants to diagnose health issues
-- User asks about performance optimization
-- User wants cost optimization recommendations
-- User says "fix this", "help me debug"
-- User wants a comprehensive analysis (not just logs OR health)
-- User needs recommendations with actionable fixes
+- Environment is unhealthy (red/yellow)
+- Deployment failed
+- Application errors or crashes
+- High latency or performance issues
+- Health check failures
+- 502 Bad Gateway errors
+- Out of memory issues
+- Database connection problems
 
-## Diagnostic Workflow
+## When NOT to Use
 
-### Step 1: Gather Environment Info
+- Routine status checks → use `status` skill
+- Just viewing logs → use `logs` skill
+- Changing configuration → use `config` skill
+
+---
+
+**Diagnostic workflow: Status → Health → Events → Logs → Config → SSH**
+
+## Step 1: Check Status and Health
+
 ```bash
-# Get environment status and health
-aws elasticbeanstalk describe-environments \
-  --environment-names <env-name> \
-  --output json
+eb status
+eb health
+```
 
-# Get detailed health
+## Step 2: Check Recent Events
+
+```bash
+eb events
+```
+
+## Step 3: Get Logs
+
+```bash
+eb logs
+eb logs --all
+```
+
+## Step 4: Check Configuration
+
+```bash
+eb config
+eb printenv
+```
+
+## Step 5: Inspect Health via AWS CLI
+
+Environment-level health (requires enhanced health reporting):
+```bash
 aws elasticbeanstalk describe-environment-health \
   --environment-name <env-name> \
-  --attribute-names All \
-  --output json
+  --attribute-names All --output json
+```
 
-# Get instance health
+Per-instance health (requires enhanced health reporting):
+```bash
 aws elasticbeanstalk describe-instances-health \
   --environment-name <env-name> \
-  --attribute-names All \
-  --output json
+  --attribute-names All --output json
 ```
 
-### Step 2: Check Recent Events
-```bash
-aws elasticbeanstalk describe-events \
-  --environment-name <env-name> \
-  --severity ERROR \
-  --max-records 20 \
-  --output json
-```
-
-### Step 3: Get Logs
-```bash
-# Request logs
-aws elasticbeanstalk request-environment-info \
-  --environment-name <env-name> \
-  --info-type tail
-
-# Wait and retrieve
-sleep 15
-aws elasticbeanstalk retrieve-environment-info \
-  --environment-name <env-name> \
-  --info-type tail \
-  --output json
-```
-
-### Step 4: Check Configuration
-```bash
-aws elasticbeanstalk describe-configuration-settings \
-  --application-name <app-name> \
-  --environment-name <env-name> \
-  --output json
-```
-
-## SSH Access to Instances
-
-When logs and metrics aren't enough, SSH into instances for direct debugging.
-
-### Get Instance IDs
+Provisioned resources:
 ```bash
 aws elasticbeanstalk describe-environment-resources \
-  --environment-name <env-name> \
-  --query 'EnvironmentResources.Instances[].Id' \
-  --output json
+  --environment-name <env-name> --output json
 ```
 
-### Get Instance Public IP
+Check individual instance status:
 ```bash
-aws ec2 describe-instances \
-  --instance-ids <instance-id> \
-  --query 'Reservations[].Instances[].PublicIpAddress' \
-  --output text
+aws ec2 describe-instance-status --instance-ids <id> --output json
 ```
 
-### SSH to Instance
+Check load balancer target health:
 ```bash
-ssh -i <key-pair.pem> ec2-user@<public-ip>
+aws elbv2 describe-target-health --target-group-arn <arn> --output json
 ```
 
-**Notes:**
-- Key pair must match the `EC2KeyName` in launch configuration
-- Security group must allow SSH (port 22) from your IP
-- Amazon Linux 2/2023 uses `ec2-user`, other platforms may differ
+## Step 6: SSH to Instance
 
-### Check Key Pair
 ```bash
-aws elasticbeanstalk describe-configuration-settings \
-  --application-name <app-name> \
-  --environment-name <env-name> \
-  --output json | jq -r '.ConfigurationSettings[0].OptionSettings[] | select(.OptionName == "EC2KeyName") | .Value'
+eb ssh
+eb ssh --instance <instance-id>
 ```
 
-### Add Key Pair (if missing)
+Common SSH debugging:
 ```bash
-aws elasticbeanstalk update-environment \
-  --environment-name <env-name> \
-  --option-settings Namespace=aws:autoscaling:launchconfiguration,OptionName=EC2KeyName,Value=<key-name> \
-  --output json
-```
-
-### Check Security Group SSH Access
-```bash
-# Get security group
-SG=$(aws elasticbeanstalk describe-environment-resources \
-  --environment-name <env-name> \
-  --query 'EnvironmentResources.Instances[0].Id' \
-  --output text | xargs -I {} aws ec2 describe-instances \
-  --instance-ids {} \
-  --query 'Reservations[0].Instances[0].SecurityGroups[0].GroupId' \
-  --output text)
-
-# Check SSH rule
-aws ec2 describe-security-groups \
-  --group-ids $SG \
-  --query 'SecurityGroups[0].IpPermissions[?FromPort==`22`]' \
-  --output json
+tail -f /var/log/web.stdout.log
+tail -f /var/log/web.stderr.log
+cat /var/log/eb-engine.log | grep -i error
+top
+free -m
+df -h
+curl localhost:80/health
 ```
 
 ## Common Issues & Fixes
 
-### Health Check Failures
+**Health Check Failures (Red/Yellow):**
+1. Health check path wrong → `eb config` → set `HealthCheckPath = /health`
+2. App too slow to start → increase health check interval
+3. Port mismatch → check `eb printenv` for PORT
 
-**Symptoms:**
-- Red/Yellow health
-- Instances failing health checks
-- 5xx errors
-
-**Diagnosis:**
-```bash
-aws elasticbeanstalk describe-environment-health \
-  --environment-name <env-name> \
-  --attribute-names Causes InstancesHealth \
-  --output json
-```
-
-**Common Fixes:**
-1. **Health check path wrong**
-   ```bash
-   aws elasticbeanstalk update-environment \
-     --environment-name <env-name> \
-     --option-settings Namespace=aws:elasticbeanstalk:environment:process:default,OptionName=HealthCheckPath,Value=/health
-   ```
-
-2. **App taking too long to start**
-   - Increase health check interval
-   - Add readiness endpoint
-
-3. **Port mismatch**
-   - Ensure app listens on correct port (default: 5000 for Node.js, 8080 for others)
-
-### Deployment Failures
-
-**Symptoms:**
-- Environment stuck in "Updating"
-- Deployment rollback
-
-**Diagnosis:**
-```bash
-aws elasticbeanstalk describe-events \
-  --environment-name <env-name> \
-  --severity ERROR \
-  --max-records 10 \
-  --output json
-```
-
-**Common Fixes:**
-1. **Build command failed**
-   - Check package.json/requirements.txt
-   - Verify build dependencies
-
-2. **Application crash on start**
-   - Check start command
-   - Verify environment variables
-
-3. **Insufficient permissions**
-   - Check IAM instance profile
-   - Verify S3/RDS access
-
-### High Latency
-
-**Symptoms:**
-- Yellow health due to latency
-- Slow response times
-
-**Diagnosis:**
-```bash
-aws elasticbeanstalk describe-environment-health \
-  --environment-name <env-name> \
-  --attribute-names ApplicationMetrics \
-  --output json
-```
-
-**Common Fixes:**
-1. **Increase instance size**
-   ```bash
-   aws elasticbeanstalk update-environment \
-     --environment-name <env-name> \
-     --option-settings Namespace=aws:autoscaling:launchconfiguration,OptionName=InstanceType,Value=t3.large
-   ```
-
-2. **Add more instances**
-   ```bash
-   aws elasticbeanstalk update-environment \
-     --environment-name <env-name> \
-     --option-settings Namespace=aws:autoscaling:asg,OptionName=MinSize,Value=3
-   ```
-
-3. **Enable caching**
-   - Add ElastiCache
-   - Implement application-level caching
-
-### Out of Memory
-
-**Symptoms:**
-- Instances terminated unexpectedly
-- OOM errors in logs
-
-**Fixes:**
-1. Upgrade to larger instance type
-2. Optimize application memory usage
-3. Increase swap space
-
-### Database Connection Issues
-
-**Symptoms:**
-- "Connection refused" or timeout errors
-- Intermittent failures
-
-**Checks:**
-1. Security group allows EB → RDS
-2. DATABASE_URL is correct
-3. RDS is running and accessible
-
-## Cost Optimization
-
-### Right-Size Instances
-
-**Check current utilization:**
-```bash
-# Linux
-aws cloudwatch get-metric-statistics \
-  --namespace AWS/EC2 \
-  --metric-name CPUUtilization \
-  --dimensions Name=AutoScalingGroupName,Value=<asg-name> \
-  --start-time $(date -u -d '7 days ago' +%Y-%m-%dT%H:%M:%SZ) \
-  --end-time $(date -u +%Y-%m-%dT%H:%M:%SZ) \
-  --period 86400 \
-  --statistics Average Maximum \
-  --output json
-
-# macOS
-aws cloudwatch get-metric-statistics \
-  --namespace AWS/EC2 \
-  --metric-name CPUUtilization \
-  --dimensions Name=AutoScalingGroupName,Value=<asg-name> \
-  --start-time $(date -u -v-7d +%Y-%m-%dT%H:%M:%SZ) \
-  --end-time $(date -u +%Y-%m-%dT%H:%M:%SZ) \
-  --period 86400 \
-  --statistics Average Maximum \
-  --output json
-```
-
-**Recommendations:**
-- CPU avg < 20%: Consider smaller instance
-- CPU avg > 70%: Consider larger instance
-- CPU spiky: Consider burstable (t3) instances
-
-### Optimize Scaling
-
-**Check for over-provisioning:**
-```bash
-aws elasticbeanstalk describe-configuration-settings \
-  --application-name <app-name> \
-  --environment-name <env-name> \
-  --output json | jq '.ConfigurationSettings[0].OptionSettings[] | select(.Namespace == "aws:autoscaling:asg")'
-```
-
-**Cost-saving options:**
-1. Lower MinSize during off-hours
-2. Use spot instances for non-critical workloads
-3. Implement scheduled scaling
-
-### Reserved Instances
-
-For stable workloads running 24/7:
-- Calculate baseline instance count
-- Consider reserved instances (up to 72% savings)
-- Use Savings Plans for flexibility
-
-### Idle Environment Detection
-
-Check if environment has traffic:
-```bash
-aws elasticbeanstalk describe-environment-health \
-  --environment-name <env-name> \
-  --attribute-names ApplicationMetrics \
-  --output json
-```
-
-If `RequestCount` is 0 for extended periods:
-- Consider terminating unused environments
-- Implement auto-shutdown for dev/staging
-
-## Performance Analysis
-
-### Identify Bottlenecks
-
-```bash
-# Check instance metrics
-aws elasticbeanstalk describe-instances-health \
-  --environment-name <env-name> \
-  --attribute-names All \
-  --output json
-```
-
-**Look for:**
-- High CPU on specific instances
-- Uneven load distribution
-- Memory pressure
-
-### Recommendations
-
-**High CPU:**
-- Profile application code
-- Consider async processing
-- Add caching layer
-
-**High Memory:**
-- Check for memory leaks
-- Optimize data structures
-- Increase instance size
+**Deployment Failures:**
+1. Build failed → check package.json/requirements.txt
+2. App crash on start → check start command, verify env vars: `eb printenv`
+3. Permissions → check IAM instance profile
 
 **High Latency:**
-- Add CDN for static assets
-- Optimize database queries
-- Implement caching
+1. Scale up: `eb config` → change InstanceType
+2. Add instances: `eb scale 3`
+3. Enable caching
 
-## Presenting Diagnosis
+**Out of Memory:**
+1. Upgrade instance type
+2. `eb ssh` → `dmesg | grep -i oom`
 
-Example output:
-```
-=== Troubleshooting: my-app-prod ===
+**Database Connection Issues:**
+1. Check env vars: `eb printenv | grep DATABASE`
+2. Security groups: use `eb-infra` skill (security)
+3. RDS status: use `eb-infra` skill (database)
 
-Health: Yellow (Warning)
+## Error Reference
 
-Issues Found:
-  1. High CPU utilization (avg 78%)
-     - Instance i-abc123: 92% CPU
-     - Recommendation: Scale up to t3.large or add instances
+| Error | Solution |
+|-------|----------|
+| Not initialized | `eb init` |
+| No environment found | `eb list` then `eb use <env>` |
+| Credentials not configured | `aws configure` |
+| CNAME already taken | `eb create <env> --cname <different-prefix>` |
+| Environment limit reached | Terminate unused environments |
+| Deployment in progress | `eb status` to check, `eb abort` to cancel |
 
-  2. Health check failures (2 in last hour)
-     - Cause: Response time > 5s threshold
-     - Recommendation: Optimize /health endpoint or increase timeout
-
-  3. P99 latency elevated (800ms)
-     - Normal: < 200ms
-     - Recommendation: Check database queries, add caching
-
-Cost Optimization:
-  - Current monthly cost: ~$150
-  - MinSize=3 but traffic suggests 2 sufficient during off-hours
-  - Recommendation: Implement scheduled scaling
-
-Suggested Actions:
-  1. Scale instance type: t3.medium → t3.large
-  2. Add scheduled scaling for off-hours
-  3. Review slow database queries
-```
-
-## Error Handling
-
-### Cannot Access CloudWatch
-```
-CloudWatch metrics not accessible. Ensure IAM role has cloudwatch:GetMetricStatistics permission.
-```
-
-### No Metrics Available
-```
-No metrics found. Environment may be new or enhanced health not enabled.
-```
+---
 
 ## Composability
 
-- **Get detailed logs**: Use `logs` skill
-- **Check health metrics**: Use `health` skill
-- **Apply config fixes**: Use `config` skill
-- **Create new environment**: Use `environment` skill
+- **View raw logs**: Use `logs` skill
+- **Check status/health**: Use `status` skill
+- **Change configuration**: Use `config` skill
+- **Database/security issues**: Use `eb-infra` skill
+- **Documentation**: Use `eb-docs` skill
 
 ## Additional Resources
 
-For detailed reference information, see the shared reference files:
-
-- [Configuration Options](../_shared/references/config-options.md) - All available configuration namespaces and options
-- [Health States](../_shared/references/health-states.md) - Health colors, statuses, and thresholds
-- [Cost Optimization](../_shared/references/cost-optimization.md) - Instance sizing, scaling, and cost-saving strategies
-- [Platforms](../_shared/references/platforms.md) - Platform-specific configuration and requirements
+- [Health States](../_shared/references/health-states.md)
+- [Configuration Options](../_shared/references/config-options.md)

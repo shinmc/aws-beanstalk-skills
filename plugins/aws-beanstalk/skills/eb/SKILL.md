@@ -1,121 +1,70 @@
 ---
 name: eb
-description: Main entrypoint for AWS Elastic Beanstalk operations. Use when user says "eb", "beanstalk", "elastic beanstalk", "aws eb", "check my beanstalk", "my aws environments", or any Beanstalk-related request. Routes to specialized skills as needed.
-argument-hint: "[command or question]"
-allowed-tools: Bash(aws elasticbeanstalk:*), Bash(aws cloudwatch:*), Bash(aws ec2:*), Bash(aws s3:*), Bash(curl:*), Bash(scripts/eb-api.sh:*), WebFetch
+description: General Elastic Beanstalk entry point. Use when user says "eb", "beanstalk", "elastic beanstalk" without a specific action, or needs help choosing the right EB skill. For specific tasks, prefer the dedicated skill (deploy, status, logs, config, troubleshoot, environment, app, maintenance, eb-infra, eb-docs).
 ---
 
-# AWS Elastic Beanstalk
+# AWS Elastic Beanstalk (EB CLI)
 
-Main entrypoint for all Elastic Beanstalk operations. This skill routes requests to specialized skills or handles them directly.
+General entry point for Elastic Beanstalk. For specific tasks, use the dedicated skill.
 
-## How to Use
+## Prerequisites
 
-Users can invoke this skill with `/eb` followed by what they want to do:
-- `/eb status` - Check environment status
-- `/eb deploy` - Deploy code
-- `/eb logs` - View logs
-- `/eb health` - Check health metrics
-- `/eb config` - View/modify configuration
-- `/eb troubleshoot` - Diagnose issues
-- `/eb create environment` - Create new environment
-- `/eb help` - Show available commands
-
-## Routing Guide
-
-Based on the user's request, route to the appropriate specialized skill:
-
-| User Intent | Route To |
-|-------------|----------|
-| Status, what's running, is it deployed | `status` skill |
-| Logs, events, errors, what happened | `logs` skill |
-| Health, why yellow/red, CPU/memory | `health` skill |
-| Config, settings, environment variables | `config` skill |
-| Deploy, push code, create version | `deploy` skill |
-| Create/terminate/swap environments | `environment` skill |
-| Create/delete applications | `app` skill |
-| Platform updates, patches, restart | `maintenance` skill |
-| Diagnose issues, fix problems, optimize | `troubleshoot` skill |
-| Documentation, how do I, best practices | `eb-docs` skill |
-
-## Quick Commands
-
-If the user just says `/eb` without specifics, show available environments:
-
+**EB CLI must be installed:**
 ```bash
-aws elasticbeanstalk describe-environments \
-  --query 'Environments[].{Name:EnvironmentName,Status:Status,Health:Health,App:ApplicationName,URL:CNAME}' \
-  --output table
+pip install awsebcli
+# or
+brew install awsebcli
 ```
 
-### List Applications
+**Project must be initialized:**
 ```bash
-aws elasticbeanstalk describe-applications \
-  --query 'Applications[].{Name:ApplicationName,Created:DateCreated}' \
-  --output table
+eb init
+# Or non-interactive:
+eb init <app-name> --region <region> --platform "<platform>"
 ```
 
-### Quick Health Check
-```bash
-aws elasticbeanstalk describe-environments \
-  --query 'Environments[].{Name:EnvironmentName,Health:Health,HealthStatus:HealthStatus}' \
-  --output table
-```
+## Quick Reference
 
-## Response Format
+| Task | Skill | Key Commands |
+|------|-------|-------------|
+| Deploy code | `deploy` | `eb deploy`, rollback, CI/CD, `eb codesource`, `eb local` |
+| Check status & health | `status` | `eb status`, `eb list`, `eb health` |
+| View logs & events | `logs` | `eb logs`, `eb events` |
+| Configuration | `config` | `eb config`, `eb setenv`, `eb scale` |
+| Troubleshoot | `troubleshoot` | Diagnostic workflow, common fixes |
+| Environments | `environment` | `eb create`, `eb terminate`, `eb clone`, `eb swap` |
+| Applications | `app` | `eb init`, `eb appversion`, lifecycle |
+| Maintenance | `maintenance` | `eb upgrade`, `eb restart`, managed actions |
+| Infrastructure | `eb-infra` | SSL, domains, secrets, database, security, costs |
+| Documentation | `eb-docs` | Best practices, platform guides, `eb labs`, `eb migrate` |
 
-When showing environment overview:
-```
-=== Elastic Beanstalk Environments ===
+## Error Reference
 
-Application: my-app
-  - my-app-prod (Ready, Green) - my-app-prod.elasticbeanstalk.com
-  - my-app-staging (Ready, Yellow) - my-app-staging.elasticbeanstalk.com
-
-Application: api-service
-  - api-prod (Ready, Green) - api-prod.elasticbeanstalk.com
-
-For details on a specific environment, try:
-  /eb status <env-name>
-  /eb health <env-name>
-  /eb logs <env-name>
-```
-
-## Help Response
-
-When user asks for help, show:
-```
-AWS Elastic Beanstalk Commands:
-
-  /eb                    List all environments
-  /eb status [env]       Environment status and deployment info
-  /eb health [env]       Detailed health metrics
-  /eb logs [env]         View application and error logs
-  /eb config [env]       View/modify configuration
-  /eb deploy [version]   Deploy code to environment
-  /eb troubleshoot [env] Diagnose issues and get recommendations
-
-Environment Management:
-  /eb create environment Create new environment
-  /eb terminate [env]    Terminate environment
-  /eb swap [env1] [env2] Swap environment CNAMEs
-
-Other:
-  /eb docs [topic]       Documentation and best practices
-  /eb maintenance [env]  Platform updates and patches
-```
+| Error | Solution |
+|-------|----------|
+| Not initialized | `eb init` |
+| No environment found | `eb list` then `eb use <env>` |
+| Credentials not configured | `aws configure` |
+| CNAME already taken | `eb create <env> --cname <different-prefix>` |
+| Environment limit reached | Terminate unused environments |
+| Deployment in progress | `eb status` to check, `eb abort` to cancel |
 
 ## Composability
 
-This skill acts as a router. For detailed operations, it should guide users to specialized skills:
+- **Deploy code**: Use `deploy` skill
+- **Check status & health**: Use `status` skill
+- **View logs & events**: Use `logs` skill
+- **Change configuration**: Use `config` skill
+- **Diagnose problems**: Use `troubleshoot` skill
+- **Manage environments**: Use `environment` skill
+- **Manage applications**: Use `app` skill
+- **Platform updates & restarts**: Use `maintenance` skill
+- **SSL, domains, secrets, DB, security, monitoring, costs**: Use `eb-infra` skill
+- **Documentation & best practices**: Use `eb-docs` skill
 
-- **Detailed status**: Use `status` skill
-- **View logs**: Use `logs` skill
-- **Health metrics**: Use `health` skill
-- **Configuration**: Use `config` skill
-- **Deployments**: Use `deploy` skill
-- **Environment lifecycle**: Use `environment` skill
-- **Application management**: Use `app` skill
-- **Maintenance**: Use `maintenance` skill
-- **Troubleshooting**: Use `troubleshoot` skill
-- **Documentation**: Use `eb-docs` skill
+## Additional Resources
+
+- [Configuration Options](../_shared/references/config-options.md)
+- [Health States](../_shared/references/health-states.md)
+- [Cost Optimization](../_shared/references/cost-optimization.md)
+- [Platforms](../_shared/references/platforms.md)

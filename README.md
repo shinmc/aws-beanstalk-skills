@@ -51,15 +51,16 @@ Copy `plugins/aws-beanstalk/skills/` to your agent's skills directory:
 
 | Skill | Description |
 |-------|-------------|
-| [status](plugins/aws-beanstalk/skills/status/SKILL.md) | Check environment status, deployments, and resources |
-| [deploy](plugins/aws-beanstalk/skills/deploy/SKILL.md) | Deploy application versions to environments |
-| [logs](plugins/aws-beanstalk/skills/logs/SKILL.md) | Request and retrieve logs, view events |
-| [config](plugins/aws-beanstalk/skills/config/SKILL.md) | Read, validate, and update configuration |
-| [health](plugins/aws-beanstalk/skills/health/SKILL.md) | Monitor environment and instance health |
-| [troubleshoot](plugins/aws-beanstalk/skills/troubleshoot/SKILL.md) | Diagnose issues, suggest fixes, optimize costs |
-| [environment](plugins/aws-beanstalk/skills/environment/SKILL.md) | Create, terminate, rebuild, swap environments |
+| [eb](plugins/aws-beanstalk/skills/eb/SKILL.md) | General entry point, quick reference |
+| [deploy](plugins/aws-beanstalk/skills/deploy/SKILL.md) | Deploy application versions, rollback, CI/CD |
+| [status](plugins/aws-beanstalk/skills/status/SKILL.md) | Check environment status and health |
+| [logs](plugins/aws-beanstalk/skills/logs/SKILL.md) | View logs, stream events, CloudWatch |
+| [config](plugins/aws-beanstalk/skills/config/SKILL.md) | Read, update configuration, env vars, scaling |
+| [troubleshoot](plugins/aws-beanstalk/skills/troubleshoot/SKILL.md) | Diagnose issues, common fixes |
+| [environment](plugins/aws-beanstalk/skills/environment/SKILL.md) | Create, terminate, clone, swap environments |
 | [app](plugins/aws-beanstalk/skills/app/SKILL.md) | Manage applications and versions |
-| [maintenance](plugins/aws-beanstalk/skills/maintenance/SKILL.md) | Apply managed actions, platform updates |
+| [maintenance](plugins/aws-beanstalk/skills/maintenance/SKILL.md) | Platform updates, managed actions |
+| [eb-infra](plugins/aws-beanstalk/skills/eb-infra/SKILL.md) | SSL, domains, secrets, database, security, costs |
 | [eb-docs](plugins/aws-beanstalk/skills/eb-docs/SKILL.md) | Documentation and best practices |
 
 ## Supported Platforms
@@ -123,15 +124,16 @@ aws-beanstalk-skills/
 │       │       ├── health-states.md
 │       │       ├── platforms.md
 │       │       └── cost-optimization.md
-│       ├── status/SKILL.md
+│       ├── eb/SKILL.md
 │       ├── deploy/SKILL.md
+│       ├── status/SKILL.md
 │       ├── logs/SKILL.md
 │       ├── config/SKILL.md
-│       ├── health/SKILL.md
 │       ├── troubleshoot/SKILL.md
 │       ├── environment/SKILL.md
 │       ├── app/SKILL.md
 │       ├── maintenance/SKILL.md
+│       ├── eb-infra/SKILL.md
 │       └── eb-docs/SKILL.md
 ├── scripts/
 │   ├── install.sh

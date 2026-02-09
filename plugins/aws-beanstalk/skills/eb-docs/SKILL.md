@@ -1,13 +1,11 @@
 ---
 name: eb-docs
-description: This skill should be used when the user asks about Elastic Beanstalk documentation, best practices, "how do I", "beanstalk docs", "eb documentation", "beanstalk help", platform-specific guidance, or needs reference information.
-argument-hint: "[topic]"
-allowed-tools: Bash(curl:*), WebFetch
+description: This skill should be used when the user asks about Elastic Beanstalk documentation, best practices, "how do I", "beanstalk docs", "eb documentation", "beanstalk help", platform-specific guidance, or needs reference information. For EB CLI operations use the dedicated skills (deploy, status, logs, config, troubleshoot, environment, app, maintenance). For AWS infrastructure (SSL, domains, secrets, database, security, monitoring, costs) use the eb-infra skill.
 ---
 
-# AWS Elastic Beanstalk Documentation
+# AWS Elastic Beanstalk Documentation (EB CLI)
 
-Provide documentation, best practices, and reference information for Elastic Beanstalk.
+Provide documentation, best practices, and reference information for Elastic Beanstalk using the EB CLI.
 
 ## When to Use
 
@@ -16,11 +14,65 @@ Provide documentation, best practices, and reference information for Elastic Bea
 - User needs platform-specific guidance
 - User asks about EB concepts or architecture
 
+## EB CLI Quick Reference
+
+### Installation
+```bash
+pip install awsebcli
+# or
+brew install awsebcli
+```
+
+### Verify Installation
+```bash
+eb --version
+```
+
+### Initialize Project
+```bash
+eb init
+```
+
+### Core Commands
+
+| Command | Description |
+|---------|-------------|
+| `eb init` | Initialize EB project |
+| `eb create` | Create new environment |
+| `eb deploy` | Deploy application |
+| `eb status` | Show environment status |
+| `eb health` | Show health status |
+| `eb logs` | Get logs |
+| `eb config` | Edit configuration |
+| `eb terminate` | Terminate environment |
+| `eb list` | List environments |
+| `eb use` | Set default environment |
+| `eb open` | Open in browser |
+| `eb events` | Show recent events |
+| `eb ssh` | SSH to instance |
+| `eb scale` | Scale instances |
+| `eb setenv` | Set environment variables |
+| `eb printenv` | Show environment variables |
+| `eb upgrade` | Upgrade platform |
+| `eb clone` | Clone environment |
+| `eb swap` | Swap environment URLs |
+| `eb abort` | Abort in-progress update |
+| `eb restore` | Restore terminated env |
+| `eb appversion` | Manage app versions |
+| `eb platform` | Platform operations |
+| `eb console` | Open AWS Console |
+| `eb tags` | Manage environment tags |
+| `eb restart` | Restart app server |
+| `eb codesource` | Configure CodeCommit integration |
+| `eb local` | Run Docker app locally |
+| `eb labs` | Experimental features |
+| `eb migrate` | Migrate IIS apps to EB (Windows) |
+
 ## AWS Documentation Links
 
 ### General
 - [Developer Guide](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/)
-- [CLI Reference](https://docs.aws.amazon.com/cli/latest/reference/elasticbeanstalk/)
+- [EB CLI Reference](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/eb-cli3.html)
 - [API Reference](https://docs.aws.amazon.com/elasticbeanstalk/latest/api/)
 
 ### Platforms
@@ -33,19 +85,15 @@ Provide documentation, best practices, and reference information for Elastic Bea
 - [Ruby](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/create-deploy-ruby.html)
 - [PHP](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/create-deploy-php.html)
 
-### Configuration
-- [Configuration Options](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/command-options.html)
-- [Environment Properties](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/environments-cfg-softwaresettings.html)
-- [Auto Scaling](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/using-features.managing.as.html)
-
 ## Platform Best Practices
 
 ### Node.js
 ```
 Project Structure:
 ├── package.json          # Required: dependencies & scripts
-├── .npmrc                 # Optional: npm configuration
+├── .npmrc                # Optional: npm configuration
 ├── Procfile              # Optional: custom start command
+├── .ebignore             # Optional: files to exclude
 └── .ebextensions/        # Optional: EB configuration
 
 Key Settings:
@@ -60,6 +108,7 @@ Project Structure:
 ├── requirements.txt      # Required: pip dependencies
 ├── application.py        # WSGI application
 ├── Procfile             # Optional: custom command
+├── .ebignore            # Optional: files to exclude
 └── .ebextensions/       # Optional: EB configuration
 
 Key Settings:
@@ -93,40 +142,43 @@ Key Settings:
 - Use multi-stage builds for smaller images
 ```
 
-## Configuration Best Practices
+## .platform/ Directory (AL2 and AL2023)
 
-### Health Checks
-```bash
-# Custom health check endpoint
-aws elasticbeanstalk update-environment \
-  --environment-name <env> \
-  --option-settings \
-    Namespace=aws:elasticbeanstalk:environment:process:default,OptionName=HealthCheckPath,Value=/health \
-    Namespace=aws:elasticbeanstalk:environment:process:default,OptionName=HealthCheckInterval,Value=15
+On Amazon Linux 2 and AL2023, use `.platform/` for hooks and reverse proxy customization:
+
+```
+.platform/
+├── hooks/                    # Run during deployments & platform updates
+│   ├── prebuild/             # Before app build (install dependencies)
+│   ├── predeploy/            # After build, before app deploy
+│   └── postdeploy/           # After app deploy completes
+├── confighooks/              # Run only on configuration changes
+│   ├── prebuild/
+│   ├── predeploy/
+│   └── postdeploy/
+└── nginx/
+    ├── conf.d/               # Additional nginx config (*.conf)
+    └── nginx.conf            # Full nginx config (replaces default)
 ```
 
-### Auto Scaling
+Hook scripts must be executable (`chmod +x`). They run as root.
+
+### Platform Hook Example
+
 ```bash
-# Recommended settings for production
-aws elasticbeanstalk update-environment \
-  --environment-name <env> \
-  --option-settings \
-    Namespace=aws:autoscaling:asg,OptionName=MinSize,Value=2 \
-    Namespace=aws:autoscaling:asg,OptionName=MaxSize,Value=10 \
-    Namespace=aws:autoscaling:trigger,OptionName=MeasureName,Value=CPUUtilization \
-    Namespace=aws:autoscaling:trigger,OptionName=Unit,Value=Percent \
-    Namespace=aws:autoscaling:trigger,OptionName=LowerThreshold,Value=20 \
-    Namespace=aws:autoscaling:trigger,OptionName=UpperThreshold,Value=70
+# .platform/hooks/postdeploy/01_restart_service.sh
+#!/bin/bash
+systemctl restart my-service
 ```
 
-### Enhanced Health
-```bash
-# Enable enhanced health monitoring
-aws elasticbeanstalk update-environment \
-  --environment-name <env> \
-  --option-settings \
-    Namespace=aws:elasticbeanstalk:healthreporting:system,OptionName=SystemType,Value=enhanced
+### Nginx Customization
+
 ```
+# .platform/nginx/conf.d/client_max_body.conf
+client_max_body_size 50M;
+```
+
+**Note:** `.ebextensions/` still works on AL2/AL2023 for option_settings and resources, but prefer `.platform/hooks/` over `.ebextensions/` commands/container_commands for lifecycle scripts.
 
 ## .ebextensions Examples
 
@@ -169,11 +221,61 @@ files:
       client_max_body_size 20M;
 ```
 
+## .ebignore File
+
+Create `.ebignore` to exclude files from deployment:
+```
+# Dependencies
+node_modules/
+.venv/
+__pycache__/
+
+# Build artifacts
+dist/
+build/
+*.pyc
+
+# Local config
+.env
+.env.local
+
+# IDE
+.idea/
+.vscode/
+
+# Git
+.git/
+```
+
+## Experimental & Specialized Commands
+
+### eb labs
+
+Experimental features that may change or be removed in future versions:
+```bash
+eb labs --help    # List available lab commands
+```
+
+**Warning:** Do not rely on `eb labs` commands for production workflows.
+
+### eb migrate (Windows IIS)
+
+Migrates IIS sites from Windows servers to Elastic Beanstalk:
+```bash
+eb migrate --interactive                       # Interactive migration
+eb migrate --sites "Default Web Site" --archive-only  # Archive without deploy
+eb migrate explore --verbose                   # List available IIS sites
+eb migrate cleanup                             # Clean up migration artifacts
+```
+
+Requires IIS 7.0+, Web Deploy 3.6+, and admin privileges. Windows only.
+
 ## Security Best Practices
 
 ### Environment Variables
 - Never commit secrets to source control
 - Use AWS Secrets Manager for sensitive values
+- Use `eb setenv` for configuration
 - Rotate credentials regularly
 
 ### IAM
@@ -191,14 +293,17 @@ files:
 ### Common Issues
 
 **"Environment health has transitioned from Ok to Severe"**
-1. Check instance health: `describe-instances-health`
-2. View logs: request-environment-info
-3. Check events for errors
+```bash
+eb health    # Check health details
+eb logs      # View application logs
+eb events    # Check recent events
+```
 
 **"Deployment failed"**
-1. Check build logs
-2. Verify package.json/requirements.txt
-3. Test locally first
+```bash
+eb events    # Check deployment errors
+eb logs --all  # Get detailed logs
+```
 
 **"502 Bad Gateway"**
 1. App not listening on correct port
@@ -206,15 +311,16 @@ files:
 3. Health check failing
 
 **"High latency warnings"**
-1. Check instance CPU/memory
-2. Review database performance
-3. Consider scaling up/out
+```bash
+eb health --refresh  # Monitor metrics
+eb scale 3           # Add more instances
+```
 
 ## Presenting Documentation
 
 When providing documentation:
 1. Give direct answers first
-2. Include relevant code examples
+2. Include relevant EB CLI commands
 3. Link to official docs for more detail
 4. Provide context for best practices
 
@@ -222,10 +328,8 @@ Example:
 ```
 To set environment variables in Elastic Beanstalk:
 
-1. Via CLI:
-   aws elasticbeanstalk update-environment \
-     --environment-name my-app-prod \
-     --option-settings Namespace=aws:elasticbeanstalk:application:environment,OptionName=API_KEY,Value=secret
+1. Via EB CLI (recommended):
+   eb setenv NODE_ENV=production API_KEY=secret
 
 2. Via .ebextensions (committed to repo):
    # .ebextensions/env.config
@@ -233,17 +337,25 @@ To set environment variables in Elastic Beanstalk:
      aws:elasticbeanstalk:application:environment:
        NODE_ENV: production
 
-Best Practice: Use Secrets Manager for sensitive values and reference them in your application code rather than storing them as plain environment variables.
+3. View current variables:
+   eb printenv
+
+Best Practice: Use Secrets Manager for sensitive values.
 
 See: https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/environments-cfg-softwaresettings.html
 ```
 
 ## Composability
 
-- **Apply configuration**: Use `config` skill
-- **Deploy changes**: Use `deploy` skill
-- **Create environments**: Use `environment` skill
-- **Troubleshoot**: Use `troubleshoot` skill
+- **Deploy code**: Use `deploy` skill
+- **Check status & health**: Use `status` skill
+- **View logs**: Use `logs` skill
+- **Change configuration**: Use `config` skill
+- **Troubleshoot issues**: Use `troubleshoot` skill
+- **Manage environments**: Use `environment` skill
+- **Manage applications**: Use `app` skill
+- **Platform updates**: Use `maintenance` skill
+- **AWS infrastructure** (SSL, domains, secrets, DB, security, monitoring, costs): Use `eb-infra` skill
 
 ## Additional Resources
 

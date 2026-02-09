@@ -1,239 +1,186 @@
 ---
 name: deploy
-description: This skill should be used when the user wants to deploy code to Elastic Beanstalk, says "deploy", "push to EB", "deploy to beanstalk", "eb deploy", "create version", or "update environment". For environment creation, use environment skill.
-argument-hint: "[version-label]"
-allowed-tools: Bash(aws elasticbeanstalk:*), Bash(aws s3:*), Bash(scripts/eb-api.sh:*)
+description: This skill should be used when the user wants to deploy code to Elastic Beanstalk, says "deploy", "push to EB", "eb deploy", "release", "rollback", "revert", "deploy to production", "CI/CD", "create version", ".ebignore", "deployment strategy", "eb codesource", "CodeCommit", "eb local", "test locally", or "run locally". For environment creation use environment skill. For logs after deploy use logs skill.
 ---
 
-# AWS Elastic Beanstalk Deploy
+# Deploy to Elastic Beanstalk
 
-Deploy application versions to Elastic Beanstalk environments.
+Deploy application code, manage versions, rollback, and configure deployment strategies using the EB CLI.
 
 ## When to Use
 
-- User asks to "deploy", "push", "release"
-- User wants to create a new application version
-- User wants to update an environment to a specific version
-- User says "deploy to production", "deploy v1.2.3"
+- Deploy code to an environment
+- Rollback to a previous version
+- Configure deployment strategies (rolling, immutable, etc.)
+- Create application versions without deploying
+- Set up CI/CD integration
+- Configure `.ebignore`
+- Configure CodeCommit as deploy source
+- Test Docker app locally before deploying
 
 ## When NOT to Use
 
-- For creating new environments → use `environment` skill
-- For configuration changes without deployment → use `config` skill
-- For checking deployment status → use `status` skill
+- Creating new environments → use `environment` skill
+- Checking status after deploy → use `status` skill
+- Viewing deployment logs → use `logs` skill
+- Changing configuration settings → use `config` skill
 
-## Deployment Flow
+---
 
-### Step 1: Package Application
-
-For source bundles, you need a ZIP file uploaded to S3:
-```bash
-# Create ZIP from current directory
-zip -r app-v1.2.3.zip . -x "*.git*" -x "node_modules/*"
-
-# Upload to S3
-aws s3 cp app-v1.2.3.zip s3://<bucket>/app-v1.2.3.zip
-```
-
-### Step 2: Create Application Version
+## Pre-Deploy Checklist
 
 ```bash
-aws elasticbeanstalk create-application-version \
-  --application-name <app-name> \
-  --version-label "v1.2.3" \
-  --description "Release v1.2.3" \
-  --source-bundle S3Bucket=<bucket>,S3Key=app-v1.2.3.zip \
-  --output json
+eb status    # Verify environment is Ready
+eb health    # Verify health is Green
 ```
 
-### Step 3: Deploy to Environment
+If health is Red or environment is Updating, do NOT deploy. Fix issues first.
+
+## Quick Deploy
 
 ```bash
-aws elasticbeanstalk update-environment \
-  --environment-name <env-name> \
-  --version-label "v1.2.3" \
-  --output json
+eb deploy
 ```
 
-## Quick Deploy (Combined)
-
-For rapid deployment, combine steps:
+Deploy to specific environment:
 ```bash
-# Upload, create version, and deploy
-VERSION="v$(date +%Y%m%d-%H%M%S)"
-aws s3 cp app.zip s3://<bucket>/app-${VERSION}.zip && \
-aws elasticbeanstalk create-application-version \
-  --application-name <app-name> \
-  --version-label "$VERSION" \
-  --source-bundle S3Bucket=<bucket>,S3Key=app-${VERSION}.zip \
-  --process \
-  --output json && \
-aws elasticbeanstalk update-environment \
-  --environment-name <env-name> \
-  --version-label "$VERSION" \
-  --output json
+eb deploy <env-name>
 ```
 
-## List Existing Versions
+## Deploy with Version Label
 
 ```bash
-aws elasticbeanstalk describe-application-versions \
-  --application-name <app-name> \
-  --max-records 10 \
-  --output json
+eb deploy --label "v1.2.3"
+eb deploy --label "v1.2.3" --message "Release v1.2.3 - Bug fixes"
 ```
 
-## Rollback to Previous Version
+## Deploy Staged Changes Only
 
 ```bash
-aws elasticbeanstalk update-environment \
-  --environment-name <env-name> \
-  --version-label "<previous-version>" \
-  --output json
+eb deploy --staged
 ```
 
-## Platform-Specific Packaging
+## Deploy Existing Version
 
-### Node.js
 ```bash
-# Include package.json, exclude node_modules
-zip -r app.zip . -x "node_modules/*" -x ".git/*" -x "*.log"
+eb deploy --version <version-label>
 ```
 
-### Python
+## Create Version Without Deploying
+
 ```bash
-# Include requirements.txt
-zip -r app.zip . -x ".venv/*" -x "__pycache__/*" -x ".git/*"
+eb deploy --process
 ```
-
-### Java
-```bash
-# Deploy WAR file directly
-aws elasticbeanstalk create-application-version \
-  --application-name <app-name> \
-  --version-label "v1.0.0" \
-  --source-bundle S3Bucket=<bucket>,S3Key=app.war
-```
-
-### Docker
-```bash
-# Include Dockerfile and docker-compose.yml
-zip -r app.zip Dockerfile docker-compose.yml app/
-```
-
-## Deployment Options
-
-### With Environment Variables
-Update environment while deploying:
-```bash
-aws elasticbeanstalk update-environment \
-  --environment-name <env-name> \
-  --version-label "v1.2.3" \
-  --option-settings \
-    Namespace=aws:elasticbeanstalk:application:environment,OptionName=NODE_ENV,Value=production
-```
-
-### Blue/Green Deployment
-See `environment` skill for CNAME swap.
 
 ## Monitor Deployment
 
-After initiating deployment:
 ```bash
-# Check environment status
-aws elasticbeanstalk describe-environments \
-  --environment-names <env-name> \
-  --output json
-
-# Watch events
-aws elasticbeanstalk describe-events \
-  --environment-name <env-name> \
-  --max-records 10 \
-  --output json
+eb events --follow
 ```
 
-## Presenting Deployment Results
+## Post-Deploy Verification
 
-When showing deployment status:
-```
-=== Deployment: my-app-prod ===
-
-Version: v1.2.3
-Status: Updating
-Started: 2024-01-15 10:30:00
-
-Progress:
-  [1/4] Creating application version... Done
-  [2/4] Uploading to S3... Done
-  [3/4] Updating environment... In Progress
-  [4/4] Health check... Pending
-
-Monitor with:
-aws elasticbeanstalk describe-events --environment-name my-app-prod
+```bash
+eb status    # Confirm version deployed
+eb health    # Confirm health is Green
+eb events    # Check for warnings
+eb open      # Open in browser
 ```
 
-### On Success
-```
-Deployment Complete!
-Version: v1.2.3
-Environment: my-app-prod
-Health: Green (Ok)
-URL: my-app-prod.elasticbeanstalk.com
+Look for:
+- "New application version was deployed" — success
+- "Environment health has transitioned from Ok to ..." — health degradation
+- "Rolling back to version" — automatic rollback triggered
+
+## Rollback
+
+```bash
+# List available versions
+eb appversion
+
+# Deploy previous known-good version
+eb deploy --version <previous-version>
+
+# Verify rollback
+eb status
+eb health
 ```
 
-### On Failure
-```
-Deployment Failed!
-Version: v1.2.3
-Status: Rolled back to v1.2.2
+## Deployment Strategies
 
-Error: Health check failed after deployment
-See logs: aws elasticbeanstalk describe-events --environment-name my-app-prod --severity ERROR
-```
+- **AllAtOnce** (Default) — Fastest, causes downtime
+- **Rolling** — Updates in batches, maintains capacity
+- **RollingWithAdditionalBatch** — Maintains full capacity
+- **Immutable** — Safest, deploys to new instances
+- **TrafficSplitting** — Canary deployments
+- **Blue/Green** — CNAME swap (see `environment` skill)
 
-## Error Handling
-
-### Version Already Exists
-```
-Version label already exists. Use a unique version label or delete the existing one:
-aws elasticbeanstalk delete-application-version \
-  --application-name <app> --version-label <version> --delete-source-bundle
+Configure via `eb config`:
+```yaml
+aws:elasticbeanstalk:command:
+  DeploymentPolicy: Rolling
+  BatchSize: '30'
+  BatchSizeType: Percentage
 ```
 
-### S3 Bucket Access Denied
+## .ebignore File
+
 ```
-Cannot access S3 bucket. Ensure:
-1. Bucket exists and is in same region
-2. IAM role has s3:GetObject permission
-3. Bucket policy allows Elastic Beanstalk access
+node_modules/
+.venv/
+__pycache__/
+dist/
+build/
+.env
+.env.local
+.idea/
+.vscode/
+.git/
 ```
 
-### Invalid Source Bundle
-```
-Source bundle validation failed. Check:
-- ZIP file is valid
-- Required files present (package.json, Dockerfile, etc.)
-- File permissions are correct
+## Code Source (CodeCommit Integration)
+
+```bash
+eb codesource                  # Choose between CodeCommit and local
+eb codesource codecommit       # Enable CodeCommit integration
+eb codesource local            # Disable CodeCommit, use local source
 ```
 
-### Environment Update In Progress
+**Note:** CodeCommit integration is not available in all AWS Regions.
+
+## Local Testing (Docker)
+
+Test Docker-based apps locally before deploying. Requires Docker installed. Linux/macOS only.
+
+```bash
+eb local run                   # Run containers locally
+eb local run --port 8080       # Map to specific host port
+eb local status                # Check local container status
+eb local open                  # Open in browser
+eb local logs                  # Show log file locations
+eb local setenv KEY=value      # Set local env vars
+eb local printenv              # View local env vars
 ```
-Environment is already updating. Wait for current update to complete:
-aws elasticbeanstalk describe-environments --environment-names <env-name>
+
+## CI/CD Integration
+
+```bash
+eb deploy --nohang    # Non-interactive deploy
+eb status --wait      # Wait for completion
+eb health             # Verify healthy
 ```
+
+---
 
 ## Composability
 
 - **Check status after deploy**: Use `status` skill
 - **View deployment logs**: Use `logs` skill
-- **Fix configuration issues**: Use `config` skill
+- **Change deployment config**: Use `config` skill
 - **Create new environment**: Use `environment` skill
+- **Manage app versions**: Use `app` skill
 
 ## Additional Resources
 
-For detailed reference information, see the shared reference files:
-
-- [Configuration Options](../_shared/references/config-options.md) - All available configuration namespaces and options
-- [Health States](../_shared/references/health-states.md) - Health colors, statuses, and thresholds
-- [Cost Optimization](../_shared/references/cost-optimization.md) - Instance sizing, scaling, and cost-saving strategies
-- [Platforms](../_shared/references/platforms.md) - Platform-specific configuration and requirements
+- [Configuration Options](../_shared/references/config-options.md)
+- [Platforms](../_shared/references/platforms.md)

@@ -1,55 +1,48 @@
 #!/usr/bin/env bash
-# AWS Elastic Beanstalk CLI helper with error handling and JSON output
+# EB CLI helper with error handling
 # Usage: eb-api.sh <command> [args...]
 
 set -e
 
-# Check if AWS CLI is installed
-if ! command -v aws &>/dev/null; then
-  echo '{"error": "AWS CLI not installed. Install with: brew install awscli or pip install awscli"}'
-  exit 1
-fi
-
-# Check if jq is installed (for JSON parsing)
-if ! command -v jq &>/dev/null; then
-  echo '{"error": "jq not installed. Install with: brew install jq"}'
-  exit 1
-fi
-
-# Check AWS credentials
-if ! aws sts get-caller-identity &>/dev/null 2>&1; then
-  echo '{"error": "AWS credentials not configured or expired. Run: aws configure"}'
+# Check if EB CLI is installed
+if ! command -v eb &>/dev/null; then
+  echo "ERROR: EB CLI not installed."
+  echo "Install with: pip install awsebcli"
+  echo "Or: brew install awsebcli"
   exit 1
 fi
 
 # Check if command provided
 if [[ -z "$1" ]]; then
-  echo '{"error": "No command provided. Usage: eb-api.sh <command> [args...]"}'
+  echo "ERROR: No command provided."
+  echo "Usage: eb-api.sh <command> [args...]"
   exit 1
 fi
 
-# Execute AWS Elastic Beanstalk command with JSON output
+# Execute EB CLI command
 COMMAND="$1"
 shift
 
-# Build the full command
-RESULT=$(aws elasticbeanstalk "$COMMAND" --output json "$@" 2>&1)
-EXIT_CODE=$?
+# Run the command and capture output
+OUTPUT=$(eb "$COMMAND" "$@" 2>&1) || EXIT_CODE=$?
+EXIT_CODE=${EXIT_CODE:-0}
 
 if [[ $EXIT_CODE -ne 0 ]]; then
-  # Parse common AWS CLI errors
-  if echo "$RESULT" | grep -q "AccessDenied"; then
-    echo "{\"error\": \"Access denied. Check IAM permissions for elasticbeanstalk:$COMMAND\", \"details\": $(echo "$RESULT" | jq -Rs .)}"
-  elif echo "$RESULT" | grep -q "ResourceNotFoundException"; then
-    echo "{\"error\": \"Resource not found\", \"details\": $(echo "$RESULT" | jq -Rs .)}"
-  elif echo "$RESULT" | grep -q "InvalidParameterValue"; then
-    echo "{\"error\": \"Invalid parameter value\", \"details\": $(echo "$RESULT" | jq -Rs .)}"
-  elif echo "$RESULT" | grep -q "ValidationError"; then
-    echo "{\"error\": \"Validation error\", \"details\": $(echo "$RESULT" | jq -Rs .)}"
+  # Classify common EB CLI errors
+  if echo "$OUTPUT" | grep -qi "not initialized\|This directory has not been set up"; then
+    echo "ERROR: Project not initialized. Run: eb init"
+  elif echo "$OUTPUT" | grep -qi "No Environment found\|No environment"; then
+    echo "ERROR: No environment found. Run: eb list"
+  elif echo "$OUTPUT" | grep -qi "credentials\|Unable to locate\|InvalidClientTokenId"; then
+    echo "ERROR: AWS credentials not configured. Run: aws configure"
+  elif echo "$OUTPUT" | grep -qi "ServiceError\|ServiceException"; then
+    echo "ERROR: AWS service error."
+    echo "$OUTPUT"
   else
-    echo "{\"error\": \"Command failed\", \"details\": $(echo "$RESULT" | jq -Rs .)}"
+    echo "ERROR: Command failed (exit code $EXIT_CODE)"
+    echo "$OUTPUT"
   fi
-  exit 1
+  exit $EXIT_CODE
 fi
 
-echo "$RESULT"
+echo "$OUTPUT"

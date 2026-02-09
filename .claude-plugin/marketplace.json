@@ -1,7 +1,7 @@
 {
   "name": "aws-beanstalk-skills",
   "version": "1.0.0",
-  "description": "AWS Elastic Beanstalk skills for Claude Code - deploy, monitor, troubleshoot",
+  "description": "AWS Elastic Beanstalk skills for Claude Code - deploy, monitor, troubleshoot, SSL, domains, secrets, database, security, costs",
   "keywords": [
     "aws",
     "elastic-beanstalk",
@@ -9,11 +9,18 @@
     "deployment",
     "devops",
     "cloud",
-    "infrastructure"
+    "infrastructure",
+    "ssl",
+    "route53",
+    "rds",
+    "secrets-manager",
+    "cloudwatch",
+    "security",
+    "cost-optimization"
   ],
   "author": {
     "name": "shinmc",
-    "email": "contact@shinmc.com"
+    "email": ""
   },
   "repository": "https://github.com/shinmc/aws-beanstalk-skills",
   "license": "MIT",

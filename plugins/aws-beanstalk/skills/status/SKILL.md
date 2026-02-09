@@ -1,183 +1,108 @@
 ---
 name: status
-description: This skill should be used when the user asks "eb status", "environment status", "what's running", "is it deployed", "check my beanstalk", "check environments", "list environments", "show my aws environments", "elastic beanstalk status", or about current deployment state. NOT for logs (use logs skill), NOT for detailed health metrics (use health skill).
-argument-hint: "[env-name]"
-allowed-tools: Bash(aws elasticbeanstalk:*), Bash(scripts/eb-api.sh:*)
+description: This skill should be used when the user asks "eb status", "environment status", "what's running", "is it deployed", "check my beanstalk", "check environments", "list environments", "show my aws environments", "eb health", "eb list", "eb open", "eb console", "is it healthy", "how is my beanstalk", or about current deployment state and environment health. For detailed troubleshooting use troubleshoot skill. For log retrieval use logs skill.
 ---
 
-# AWS Elastic Beanstalk Status
+# Environment Status & Health
 
-Check the current status of Elastic Beanstalk environments and applications.
+Check current deployment state, environment health, and list Elastic Beanstalk environments using the EB CLI.
 
 ## When to Use
 
-- User asks about environment status, deployment state
-- User says "is my app running", "what's deployed", "environment info"
-- Before any deployment operation (to verify current state)
-- User asks about available environments or applications
+- Check environment status or deployment state
+- List all environments
+- View health overview
+- Open environment in browser or AWS Console
+- Check provisioned resources
 
 ## When NOT to Use
 
-- For detailed logs → use `logs` skill
-- For instance-level health → use `health` skill
-- For configuration details → use `config` skill
-- For deployment history → use `logs` skill with events
+- Viewing logs → use `logs` skill
+- Diagnosing problems → use `troubleshoot` skill
+- Changing configuration → use `config` skill
+- Deploying code → use `deploy` skill
 
-## Region Handling
+---
 
-Commands use your default AWS region (`AWS_DEFAULT_REGION` or `~/.aws/config`).
+## Quick Status
 
-**Check current region:**
 ```bash
-aws configure get region
+eb status
+eb status <env-name>
 ```
 
-**Override for specific commands:**
+## List All Environments
+
 ```bash
-aws elasticbeanstalk describe-environments --region us-west-2
+eb list
+eb list --verbose
 ```
 
-**For multi-region setups:** Always specify `--region` explicitly to avoid targeting the wrong environment.
+## Set Default Environment
 
-## Quick Status Check
-
-Get environment status:
 ```bash
-aws elasticbeanstalk describe-environments \
-  --environment-names <env-name> \
-  --output json
+eb use <env-name>
 ```
 
-List all environments for an application:
+## Open in Browser
+
 ```bash
-aws elasticbeanstalk describe-environments \
-  --application-name <app-name> \
-  --output json
+eb open
+eb open <env-name>
 ```
 
-List all applications:
+## Open AWS Console
+
 ```bash
-aws elasticbeanstalk describe-applications --output json
+eb console
+eb console <env-name>
 ```
 
-## Get Environment Resources
+## Detailed Health
 
-View instances, load balancers, and other resources:
+```bash
+eb health
+eb health <env-name>
+eb health --refresh    # Live-updating dashboard
+```
+
+Health colors: **Green** (OK), **Yellow** (Warning), **Red** (Degraded/Severe), **Grey** (Unknown)
+
+## Environment Health (AWS CLI)
+
+Detailed health via AWS CLI (requires enhanced health reporting):
+```bash
+aws elasticbeanstalk describe-environment-health \
+  --environment-name <env-name> \
+  --attribute-names All --output json
+```
+
+Per-instance health:
+```bash
+aws elasticbeanstalk describe-instances-health \
+  --environment-name <env-name> \
+  --attribute-names All --output json
+```
+
+## Provisioned Resources
+
 ```bash
 aws elasticbeanstalk describe-environment-resources \
   --environment-name <env-name> \
   --output json
 ```
 
-## Response Fields
+Shows EC2 instances, load balancers, auto scaling groups, and triggers.
 
-Key fields from `describe-environments`:
-- `EnvironmentName` - Environment name
-- `Status` - Launching, Updating, Ready, Terminating, Terminated
-- `Health` - Green, Yellow, Red, Grey
-- `HealthStatus` - Ok, Warning, Degraded, Severe, Info, Pending, Unknown
-- `VersionLabel` - Currently deployed version
-- `SolutionStackName` - Platform (Node.js, Python, etc.)
-- `CNAME` - Environment URL
-- `DateUpdated` - Last update timestamp
-
-## Presenting Status
-
-Parse JSON and present:
-- **Application**: name
-- **Environment**: name and status
-- **Health**: color and status
-- **Version**: currently deployed version
-- **URL**: environment CNAME
-- **Platform**: solution stack
-
-Example output:
-```
-Application: my-app
-Environment: my-app-prod (Ready)
-Health: Green (Ok)
-Version: v1.2.3
-URL: my-app-prod.elasticbeanstalk.com
-Platform: 64bit Amazon Linux 2023 v6.7.2 running Node.js 20
-```
-
-## Check Specific Application
-
-```bash
-aws elasticbeanstalk describe-applications \
-  --application-names <app-name> \
-  --output json
-```
-
-## Error Handling
-
-### AWS CLI Not Installed
-```
-AWS CLI is not installed. Install with:
-- macOS: brew install awscli
-- pip: pip install awscli
-Then configure: aws configure
-```
-
-### Not Authenticated
-```
-AWS credentials not configured. Run:
-aws configure
-```
-
-### Environment Not Found
-```
-Environment "<name>" not found. List available environments:
-aws elasticbeanstalk describe-environments
-```
-
-### No Environments
-```
-No environments found for application "<name>".
-Create one with: aws elasticbeanstalk create-environment
-```
-
-## Common Workflows
-
-### Deploy and Verify
-1. `status` → Check current state before deployment
-2. `deploy` → Push new version
-3. `status` → Verify deployment started
-4. `logs` → Watch for errors during deployment
-5. `health` → Confirm healthy state after deployment
-
-### Investigate Issues
-1. `status` → Check environment status and health color
-2. `health` → Get detailed health metrics
-3. `logs` → Retrieve application and error logs
-4. `troubleshoot` → Get comprehensive diagnosis and recommendations
-
-### Scale Environment
-1. `status` → Check current instance count
-2. `health` → Verify current load/utilization
-3. `config` → Update scaling settings (MinSize, MaxSize)
-4. `status` → Confirm scaling in progress
-
-### Blue/Green Deployment
-1. `status` → Check current environment state
-2. `environment` → Create new environment with new version
-3. `status` → Wait for new environment to be Ready
-4. `health` → Verify new environment is healthy
-5. `environment` → Swap CNAMEs
-6. `environment` → Terminate old environment (optional)
+---
 
 ## Composability
 
 - **View logs**: Use `logs` skill
-- **Check detailed health**: Use `health` skill
-- **Deploy new version**: Use `deploy` skill
-- **Modify configuration**: Use `config` skill
+- **Diagnose issues**: Use `troubleshoot` skill
+- **Deploy code**: Use `deploy` skill
+- **Change configuration**: Use `config` skill
 
 ## Additional Resources
 
-For detailed reference information, see the shared reference files:
-
-- [Configuration Options](../_shared/references/config-options.md) - All available configuration namespaces and options
-- [Health States](../_shared/references/health-states.md) - Health colors, statuses, and thresholds
-- [Cost Optimization](../_shared/references/cost-optimization.md) - Instance sizing, scaling, and cost-saving strategies
-- [Platforms](../_shared/references/platforms.md) - Platform-specific configuration and requirements
+- [Health States](../_shared/references/health-states.md)
