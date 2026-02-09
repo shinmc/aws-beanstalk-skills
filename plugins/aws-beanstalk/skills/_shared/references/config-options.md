@@ -109,18 +109,21 @@ Value: my-value
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | ManagedActionsEnabled | Boolean | false | Enable managed updates |
-| PreferredStartTime | String | - | Maintenance window (e.g., "Sun:10:00") |
+| PreferredStartTime | String | - | Maintenance window, format: day:hour:minute UTC (e.g., "Tue:09:00") (required when ManagedActionsEnabled=true) |
 | ServiceRoleForManagedUpdates | String | - | Service role ARN |
 
 #### aws:elasticbeanstalk:managedactions:platformupdate
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| UpdateLevel | String | - | patch, minor, or major |
+| UpdateLevel | String | - | patch or minor (required when ManagedActionsEnabled=true) |
 | InstanceRefreshEnabled | Boolean | false | Replace instances during update |
 
 ### Platform-Specific
 
-#### aws:elasticbeanstalk:container:nodejs
+#### aws:elasticbeanstalk:container:nodejs (AL1 ONLY)
+
+> **Warning:** This namespace is NOT supported on Amazon Linux 2 or AL2023. On AL2/AL2023, use a `Procfile` instead.
+
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | NodeCommand | String | - | Command to start app |

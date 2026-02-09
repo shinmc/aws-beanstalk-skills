@@ -2,7 +2,15 @@
 
 Agent skills for [AWS Elastic Beanstalk](https://aws.amazon.com/elasticbeanstalk/), following the [Agent Skills](https://agentskills.io) open format.
 
+**Website:** [aws-beanstalk-skills.vercel.app](https://aws-beanstalk-skills.vercel.app)
+
 ## Installation
+
+```bash
+npx skills add shinmc/aws-beanstalk-skills
+```
+
+Or via install script:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/shinmc/aws-beanstalk-skills/main/scripts/install.sh | bash
@@ -13,21 +21,13 @@ Supports Claude Code, OpenAI Codex, OpenCode, and Cursor. Re-run to update.
 ### Manual Installation
 
 <details>
-<summary>Claude Code (skills)</summary>
+<summary>Claude Code plugin</summary>
 
 ```bash
-# Clone the repo
-git clone https://github.com/shinmc/aws-beanstalk-skills.git
-cd aws-beanstalk-skills
-
-# Copy skills to Claude skills directory
-mkdir -p ~/.claude/skills
-cp -r plugins/aws-beanstalk/skills/* ~/.claude/skills/
-
-# Start a new Claude Code session to load the skills
+claude plugin marketplace add shinmc/aws-beanstalk-skills
+claude plugin install aws-beanstalk@aws-beanstalk-skills
 ```
 
-To update, `git pull` and re-copy the skills.
 </details>
 
 <details>
@@ -76,39 +76,66 @@ Copy `plugins/aws-beanstalk/skills/` to your agent's skills directory:
 
 ## Features
 
-### Full Lifecycle Management
-- Create and manage environments
-- Deploy and rollback versions
+### Deployment & Lifecycle
+- Deploy, rollback, and manage application versions
 - Blue/green deployments with CNAME swap
+- Create, terminate, clone, and restore environments
+- Deployment strategies (rolling, immutable, traffic splitting)
+- CodeCommit integration and local Docker testing
 
 ### Monitoring & Troubleshooting
-- Real-time health monitoring
-- Log retrieval and analysis
-- Automatic issue diagnosis
+- Real-time health monitoring with `eb health --refresh`
+- AWS CLI health inspection (`describe-environment-health`, `describe-instances-health`)
+- Log retrieval, streaming, and CloudWatch integration
+- Structured diagnostic workflow (status → health → events → logs → config → SSH)
 
-### Configuration Management
-- Read and update environment settings
-- Environment variable management
-- Scaling and instance configuration
+### Configuration & Maintenance
+- Interactive config editor, environment variables, scaling
+- Platform updates, managed actions, and maintenance windows
+- `.platform/` hooks and nginx customization (AL2/AL2023)
+- Solution stack validation
 
-### Cost Optimization
-- Instance right-sizing recommendations
-- Idle environment detection
-- Reserved instance guidance
+### Infrastructure (eb-infra)
+- SSL/TLS certificate management (ACM)
+- Custom domain setup (Route 53)
+- Secrets management (Secrets Manager, SSM Parameter Store)
+- Database monitoring (RDS)
+- Security auditing (IAM, security groups, VPC)
+- Cost analysis (Cost Explorer)
+- CloudWatch alarms and SNS notifications
+
+### Documentation & Best Practices
+- Platform-specific guidance (Node.js, Python, Java, Docker, .NET, Go, Ruby, PHP)
+- `.ebextensions` and `.platform/` examples
+- Security best practices and common pitfalls
 
 ## Hooks
 
 This plugin includes a PreToolUse hook that auto-approves common AWS commands to avoid permission prompts:
 
-- `aws elasticbeanstalk` - All Elastic Beanstalk operations
+- `eb` CLI - All EB CLI commands
+- `aws elasticbeanstalk` - All Elastic Beanstalk API operations
 - `aws s3` - Deployment artifact uploads
-- `aws cloudwatch` - Metrics for troubleshooting
+- `aws cloudwatch` - Metrics and monitoring
+- `aws ec2` - Instance and security group inspection (describe only)
+- `aws elbv2` - Load balancer health checks (describe only)
+- `aws autoscaling` - Auto scaling group inspection (describe only)
+- `aws acm` - SSL certificate management
+- `aws route53` - Custom domain management
+- `aws secretsmanager` - Secrets management
+- `aws ssm` - SSM Parameter Store
+- `aws rds` - Database monitoring (describe/snapshot only)
+- `aws ce` - Cost Explorer analysis
+- `aws sns` - Monitoring alarm notifications
+- `aws iam` - EB role management (EB-related only)
 - `curl` to AWS URLs - Log file retrieval
 
 ## Repository Structure
 
 ```
 aws-beanstalk-skills/
+├── .claude-plugin/
+│   └── marketplace.json
 ├── plugins/aws-beanstalk/
 │   ├── .claude-plugin/
 │   │   └── plugin.json
@@ -190,8 +217,39 @@ For full functionality, the IAM user/role needs:
         "s3:GetObject",
         "s3:PutObject",
         "s3:ListBucket",
+        "ec2:DescribeInstances",
+        "ec2:DescribeInstanceStatus",
+        "ec2:DescribeSecurityGroups",
+        "elasticloadbalancing:DescribeTargetHealth",
+        "elasticloadbalancing:DescribeTargetGroups",
+        "elasticloadbalancing:DescribeLoadBalancers",
+        "autoscaling:DescribeAutoScalingGroups",
+        "autoscaling:DescribeScalingActivities",
         "cloudwatch:GetMetricStatistics",
-        "logs:GetLogEvents"
+        "logs:GetLogEvents",
+        "acm:ListCertificates",
+        "acm:DescribeCertificate",
+        "acm:RequestCertificate",
+        "route53:ListHostedZones",
+        "route53:ListResourceRecordSets",
+        "route53:ChangeResourceRecordSets",
+        "route53:GetChange",
+        "secretsmanager:*",
+        "ssm:GetParameter",
+        "ssm:GetParametersByPath",
+        "ssm:PutParameter",
+        "ssm:DescribeParameters",
+        "rds:DescribeDBInstances",
+        "rds:DescribeDBSnapshots",
+        "rds:CreateDBSnapshot",
+        "rds:DescribePendingMaintenanceActions",
+        "ce:GetCostAndUsage",
+        "ce:GetCostForecast",
+        "sns:CreateTopic",
+        "sns:Subscribe",
+        "sns:ListTopics",
+        "iam:GetRole",
+        "iam:GetInstanceProfile"
       ],
       "Resource": "*"
     }

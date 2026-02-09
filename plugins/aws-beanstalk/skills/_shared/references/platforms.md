@@ -72,6 +72,13 @@ aws elasticbeanstalk list-available-solution-stacks \
 - Listens on `process.env.PORT` (default: 8080)
 
 ### Configuration Options
+
+> **Warning:** The `aws:elasticbeanstalk:container:nodejs` namespace is **AL1 only** (not supported on AL2/AL2023). On AL2/AL2023, use a `Procfile` instead:
+> ```
+> web: node server.js
+> ```
+
+Legacy AL1 only:
 ```
 aws:elasticbeanstalk:container:nodejs:
   NodeCommand: npm start
