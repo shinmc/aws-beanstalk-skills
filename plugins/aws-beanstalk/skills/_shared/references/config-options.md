@@ -15,7 +15,7 @@
 #### aws:autoscaling:launchconfiguration
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| InstanceType | String | t2.micro | EC2 instance type |
+| InstanceType | String | t3.micro | EC2 instance type |
 | EC2KeyName | String | - | SSH key pair name |
 | IamInstanceProfile | String | aws-elasticbeanstalk-ec2-role | IAM instance profile |
 | RootVolumeType | String | gp2 | EBS volume type |

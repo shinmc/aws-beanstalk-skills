@@ -42,6 +42,7 @@ eb init <app-name> --region <region> --platform "<platform>"
 
 | Error | Solution |
 |-------|----------|
+| `command not found: eb` | `pip install awsebcli` or `brew install awsebcli` |
 | Not initialized | `eb init` |
 | No environment found | `eb list` then `eb use <env>` |
 | Credentials not configured | `aws configure` |

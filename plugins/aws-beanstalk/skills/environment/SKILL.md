@@ -37,7 +37,8 @@ Before creating, verify the platform solution stack name:
 aws elasticbeanstalk list-available-solution-stacks --output json --query 'SolutionStacks'
 ```
 
-Solution stack name format: `64bit Amazon Linux 2023 v6.7.3 running Node.js 24`
+Solution stack name format (example — version will vary, always query for latest):
+`64bit Amazon Linux 2023 v<version> running Node.js <node-version>`
 
 ## Create Environment
 

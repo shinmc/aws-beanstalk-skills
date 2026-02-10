@@ -76,10 +76,6 @@ download_skills() {
   # Download shared references
   echo "  - shared references"
   mkdir -p "$dest/aws-beanstalk/_shared/references"
-  mkdir -p "$dest/aws-beanstalk/_shared/scripts"
-
-  curl -fsSL "$REPO_RAW/$SKILLS_DIR/_shared/scripts/eb-api.sh" -o "$dest/aws-beanstalk/_shared/scripts/eb-api.sh"
-  chmod +x "$dest/aws-beanstalk/_shared/scripts/eb-api.sh"
 
   curl -fsSL "$REPO_RAW/$SKILLS_DIR/_shared/references/config-options.md" -o "$dest/aws-beanstalk/_shared/references/config-options.md"
   curl -fsSL "$REPO_RAW/$SKILLS_DIR/_shared/references/health-states.md" -o "$dest/aws-beanstalk/_shared/references/health-states.md"

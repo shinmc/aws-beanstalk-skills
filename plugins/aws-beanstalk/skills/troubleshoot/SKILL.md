@@ -136,16 +136,7 @@ curl localhost:80/health
 2. Security groups: use `eb-infra` skill (security)
 3. RDS status: use `eb-infra` skill (database)
 
-## Error Reference
-
-| Error | Solution |
-|-------|----------|
-| Not initialized | `eb init` |
-| No environment found | `eb list` then `eb use <env>` |
-| Credentials not configured | `aws configure` |
-| CNAME already taken | `eb create <env> --cname <different-prefix>` |
-| Environment limit reached | Terminate unused environments |
-| Deployment in progress | `eb status` to check, `eb abort` to cancel |
+For common EB CLI error messages and solutions, see the `eb` skill (Error Reference table).
 
 ---
 

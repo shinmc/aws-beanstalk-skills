@@ -144,8 +144,6 @@ aws-beanstalk-skills/
 │   │   └── auto-approve-aws.sh
 │   └── skills/
 │       ├── _shared/
-│       │   ├── scripts/
-│       │   │   └── eb-api.sh
 │       │   └── references/
 │       │       ├── config-options.md
 │       │       ├── health-states.md
@@ -163,8 +161,7 @@ aws-beanstalk-skills/
 │       ├── eb-infra/SKILL.md
 │       └── eb-docs/SKILL.md
 ├── scripts/
-│   ├── install.sh
-│   └── sync-shared.sh
+│   └── install.sh
 └── README.md
 ```
 
@@ -176,7 +173,6 @@ Create `plugins/aws-beanstalk/skills/{name}/SKILL.md`:
 ---
 name: my-skill
 description: What this skill does and when to use it
-allowed-tools: Bash(aws elasticbeanstalk:*)
 ---
 
 # Instructions
@@ -192,15 +188,7 @@ Concrete examples showing expected input/output.
 
 ### Shared Files
 
-Scripts (`eb-api.sh`) and references are shared across skills.
-Canonical versions live in `plugins/aws-beanstalk/skills/_shared/`.
-
-After editing files in `_shared/`, run:
-```bash
-./scripts/sync-shared.sh
-```
-
-This copies shared files to each skill that needs them.
+Reference documents are shared across skills via relative paths to `plugins/aws-beanstalk/skills/_shared/`.
 
 ## Required IAM Permissions
 
@@ -226,30 +214,46 @@ For full functionality, the IAM user/role needs:
         "autoscaling:DescribeAutoScalingGroups",
         "autoscaling:DescribeScalingActivities",
         "cloudwatch:GetMetricStatistics",
+        "cloudwatch:ListMetrics",
+        "cloudwatch:DescribeAlarms",
+        "cloudwatch:PutMetricAlarm",
+        "cloudwatch:DeleteAlarms",
         "logs:GetLogEvents",
         "acm:ListCertificates",
         "acm:DescribeCertificate",
         "acm:RequestCertificate",
+        "acm:DeleteCertificate",
         "route53:ListHostedZones",
         "route53:ListResourceRecordSets",
         "route53:ChangeResourceRecordSets",
         "route53:GetChange",
-        "secretsmanager:*",
+        "secretsmanager:CreateSecret",
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:ListSecrets",
+        "secretsmanager:DescribeSecret",
+        "secretsmanager:UpdateSecret",
+        "secretsmanager:RotateSecret",
+        "secretsmanager:DeleteSecret",
         "ssm:GetParameter",
         "ssm:GetParametersByPath",
         "ssm:PutParameter",
         "ssm:DescribeParameters",
+        "ssm:DeleteParameter",
+        "ssm:DeleteParameters",
         "rds:DescribeDBInstances",
         "rds:DescribeDBSnapshots",
         "rds:CreateDBSnapshot",
         "rds:DescribePendingMaintenanceActions",
+        "rds:DownloadDBLogFilePortion",
         "ce:GetCostAndUsage",
         "ce:GetCostForecast",
         "sns:CreateTopic",
         "sns:Subscribe",
         "sns:ListTopics",
+        "sns:ListSubscriptions",
         "iam:GetRole",
-        "iam:GetInstanceProfile"
+        "iam:GetInstanceProfile",
+        "iam:ListAttachedRolePolicies"
       ],
       "Resource": "*"
     }

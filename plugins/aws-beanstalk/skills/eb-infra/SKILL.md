@@ -7,6 +7,23 @@ description: This skill should be used when the user asks about SSL, HTTPS, cert
 
 Manage AWS services that support Elastic Beanstalk environments — SSL certificates, custom domains, secrets, databases, security, monitoring, and costs.
 
+## When to Use
+
+- SSL/HTTPS certificate management
+- Custom domain setup (Route 53)
+- Secrets management (Secrets Manager, SSM Parameter Store)
+- Database monitoring and snapshots (RDS)
+- Security auditing (IAM, security groups)
+- CloudWatch alarms and SNS notifications
+- Cost analysis and optimization
+
+## When NOT to Use
+
+- EB CLI operations (deploy, status, logs, config) → use the dedicated skills
+- Creating/managing environments → use `environment` skill
+- Troubleshooting application issues → use `troubleshoot` skill
+- Platform updates → use `maintenance` skill
+
 ## Prerequisites
 
 **AWS CLI must be installed and configured:**
@@ -60,7 +77,7 @@ aws:elbv2:listener:443:
 
 ### Delete Certificate
 ```bash
-aws acm delete-certificate --certificate-arn <arn>
+aws acm delete-certificate --certificate-arn <arn> --output json
 ```
 
 Cannot delete if in use by a load balancer — remove from EB config first.
@@ -116,7 +133,13 @@ aws route53 change-resource-record-sets \
   }'
 ```
 
-EB Hosted Zone IDs: us-east-1=Z117KPS5GTRQ2G, us-west-2=Z38NKT9BP95V3O, eu-west-1=Z2NYPWQ7DFZAZH
+EB Hosted Zone IDs by region:
+- us-east-1=Z117KPS5GTRQ2G, us-east-2=Z14LCN19Q5QHJI, us-west-1=Z1LQECGX5PH1X, us-west-2=Z38NKT9BP95V3O
+- eu-west-1=Z2NYPWQ7DFZAZH, eu-west-2=Z1GKAAAUGATPF1, eu-west-3=Z5WN6GAABZTB7, eu-central-1=Z1FRNW7UH4DEZJ
+- ap-southeast-1=Z16FZ9L249IFLT, ap-southeast-2=Z2PCDNR3VC2G1N, ap-northeast-1=Z1R25G3KIG2GBW, ap-northeast-2=Z3JE5OI70TWKCP
+- ap-south-1=Z18NTBI3Y7N9TZ, ca-central-1=ZJFCZL7SSZB5I, sa-east-1=Z10X7K2B4QSOFV
+
+For the full list, see [AWS Elastic Beanstalk endpoints](https://docs.aws.amazon.com/general/latest/gr/elasticbeanstalk.html).
 
 ### Check DNS Propagation
 ```bash
@@ -132,11 +155,13 @@ Use `Action: "DELETE"` with exact same record values.
 
 ### Secrets Manager
 
+> **Security:** Avoid passing secret values directly on the command line — they are visible in shell history and process listings. Prefer `--secret-string file://secret.txt` where the file contains only the secret value.
+
 ```bash
 # Create
 aws secretsmanager create-secret \
   --name myapp/api-key \
-  --secret-string "sk-abc123" --output json
+  --secret-string file://secret.txt --output json
 
 # Retrieve
 aws secretsmanager get-secret-value --secret-id myapp/api-key --output json
@@ -147,7 +172,7 @@ aws secretsmanager list-secrets --output table
 # Update
 aws secretsmanager update-secret \
   --secret-id myapp/api-key \
-  --secret-string "sk-new-key" --output json
+  --secret-string file://secret.txt --output json
 
 # Rotate
 aws secretsmanager rotate-secret --secret-id myapp/api-key --output json
@@ -160,11 +185,13 @@ aws secretsmanager delete-secret \
 
 ### SSM Parameter Store
 
+> **Security:** Avoid passing secret values directly on the command line — they are visible in shell history and process listings. Prefer `--value file://secret.txt` where the file contains only the secret value.
+
 ```bash
 # Create (encrypted)
 aws ssm put-parameter \
   --name /myapp/prod/db-url \
-  --value "postgres://..." \
+  --value file://secret.txt \
   --type SecureString --output json
 
 # Retrieve
@@ -174,7 +201,7 @@ aws ssm get-parameter --name /myapp/prod/db-url --with-decryption --output json
 aws ssm get-parameters-by-path --path /myapp/prod/ --with-decryption --output table
 
 # Delete
-aws ssm delete-parameter --name /myapp/prod/old-key
+aws ssm delete-parameter --name /myapp/prod/old-key --output json
 ```
 
 ### Reference Secrets in EB Environment Variables
@@ -425,3 +452,8 @@ aws ce get-cost-forecast \
 - **Troubleshoot issues**: Use `troubleshoot` skill
 - **Manage environments**: Use `environment` skill
 - **Documentation & best practices**: Use `eb-docs` skill
+
+## Additional Resources
+
+- [Cost Optimization](../_shared/references/cost-optimization.md)
+- [Configuration Options](../_shared/references/config-options.md)

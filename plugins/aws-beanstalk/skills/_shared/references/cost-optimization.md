@@ -22,7 +22,7 @@
 ```bash
 # macOS:
 aws cloudwatch get-metric-statistics \
-  --namespace AWS/EC2 \
+  --namespace AWS/ElasticBeanstalk \
   --metric-name CPUUtilization \
   --dimensions Name=EnvironmentName,Value=<env-name> \
   --start-time $(date -u -v-7d +%Y-%m-%dT%H:%M:%SZ) \
@@ -33,7 +33,7 @@ aws cloudwatch get-metric-statistics \
 
 # Linux:
 aws cloudwatch get-metric-statistics \
-  --namespace AWS/EC2 \
+  --namespace AWS/ElasticBeanstalk \
   --metric-name CPUUtilization \
   --dimensions Name=EnvironmentName,Value=<env-name> \
   --start-time $(date -u -d '7 days ago' +%Y-%m-%dT%H:%M:%SZ) \
@@ -100,11 +100,11 @@ https://calculator.aws/#/addService/ElasticBeanstalk
 - Can tolerate occasional throttling
 - Development/staging environments
 
-**Use m5/c5 (fixed) when:**
+**Use m6i/c6i (fixed) when:**
 - Consistent high CPU usage
 - Latency-sensitive applications
 - Production workloads
-- t3 credits frequently depleted
+- T3 credits frequently depleted
 
 ## Auto Scaling Optimization
 

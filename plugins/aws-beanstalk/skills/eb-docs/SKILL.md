@@ -14,6 +14,12 @@ Provide documentation, best practices, and reference information for Elastic Bea
 - User needs platform-specific guidance
 - User asks about EB concepts or architecture
 
+## When NOT to Use
+
+- Performing EB CLI operations → use the dedicated skills (`deploy`, `status`, `logs`, `config`, `environment`, `app`, `maintenance`)
+- Diagnosing issues → use `troubleshoot` skill
+- AWS infrastructure (SSL, domains, secrets, DB, security, monitoring, costs) → use `eb-infra` skill
+
 ## EB CLI Quick Reference
 
 ### Installation
@@ -86,6 +92,8 @@ eb init
 - [PHP](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/create-deploy-php.html)
 
 ## Platform Best Practices
+
+> For full platform details (all 8 platforms including configuration, examples, and comparison), see the [Platforms Reference](../_shared/references/platforms.md).
 
 ### Node.js
 ```

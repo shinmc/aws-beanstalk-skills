@@ -54,6 +54,10 @@ eb events --follow       # Follow events live
 - **Docker**: `/var/log/eb-docker/containers/eb-current-app/*.log`
 - **Java (Corretto)**: `/var/log/web.stdout.log`, `/var/log/web.stderr.log`
 - **Java (Tomcat)**: `/var/log/tomcat/catalina.out`
+- **Go**: `/var/log/web.stdout.log`, `/var/log/web.stderr.log`
+- **Ruby**: `/var/log/web.stdout.log`, `/var/log/web.stderr.log`
+- **PHP**: `/var/log/web.stdout.log`, `/var/log/web.stderr.log`
+- **.NET**: `/var/log/web.stdout.log`, `/var/log/web.stderr.log`
 
 **Common EB platform logs:**
 - `/var/log/eb-engine.log` — EB deployment engine log

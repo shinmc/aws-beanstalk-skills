@@ -10,6 +10,23 @@ if [[ "$tool_name" != "Bash" ]]; then
   exit 0
 fi
 
+# ── Reject chained commands to prevent bypass (e.g. "eb status && rm -rf /") ──
+if [[ "$command" == *"&&"* ]] || [[ "$command" == *"||"* ]] || [[ "$command" == *";"* ]]; then
+  exit 0  # Require manual approval for chained commands
+fi
+
+# ── Validate piped commands — ALL pipe targets must be safe ──
+if [[ "$command" == *"|"* ]]; then
+  IFS='|' read -ra PIPE_PARTS <<< "$command"
+  for part in "${PIPE_PARTS[@]:1}"; do
+    trimmed=$(echo "$part" | xargs)
+    cmd_name=$(echo "$trimmed" | awk '{print $1}')
+    if ! [[ "$cmd_name" =~ ^(jq|grep|head|tail|sort|wc|less|cat|tee|tr|cut|awk|sed)$ ]]; then
+      exit 0  # Unsafe pipe target, require manual approval
+    fi
+  done
+fi
+
 # ── Deny destructive commands (require manual user confirmation) ──
 
 # EB CLI destructive commands
@@ -61,11 +78,6 @@ if [[ "$command" == *'"Action": "DELETE"'* ]] || [[ "$command" == *'"Action":"DE
   fi
 fi
 
-# eb-api.sh with destructive commands
-if [[ "$command" == *"eb-api.sh"* ]] && [[ "$command" == *"terminate"* ]]; then
-  exit 0
-fi
-
 # ── Auto-approve safe commands below ──
 
 # Auto-approve eb CLI commands (EB CLI)
@@ -76,20 +88,6 @@ if [[ "$command" =~ ^eb[[:space:]] ]] || [[ "$command" == "eb" ]]; then
     "hookEventName": "PreToolUse",
     "permissionDecision": "allow",
     "permissionDecisionReason": "EB CLI command auto-approved"
-  }
-}
-EOF
-  exit 0
-fi
-
-# Auto-approve eb-api.sh calls
-if [[ "$command" == *"eb-api.sh"* ]]; then
-  cat <<'EOF'
-{
-  "hookSpecificOutput": {
-    "hookEventName": "PreToolUse",
-    "permissionDecision": "allow",
-    "permissionDecisionReason": "AWS Elastic Beanstalk API call auto-approved"
   }
 }
 EOF
@@ -125,7 +123,7 @@ EOF
 fi
 
 # Auto-approve aws cloudwatch commands (for metrics/troubleshooting)
-if [[ "$command" =~ ^aws[[:space:]]+cloudwatch[[:space:]] ]]; then
+if [[ "$command" =~ ^aws[[:space:]]+cloudwatch[[:space:]]+(get-metric-statistics|list-metrics|describe-alarms|put-metric-alarm)[[:space:]] ]]; then
   cat <<'EOF'
 {
   "hookSpecificOutput": {

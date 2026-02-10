@@ -96,7 +96,7 @@ aws:elasticbeanstalk:container:nodejs:
     "build": "npm run compile"
   },
   "engines": {
-    "node": "18.x"
+    "node": "22.x"
   }
 }
 ```
@@ -218,9 +218,9 @@ aws elasticbeanstalk list-available-solution-stacks \
 ### Deployment Options
 
 #### Single Container
-Use `Dockerfile`:
+Use `Dockerfile` (adjust base image version as needed):
 ```dockerfile
-FROM node:18-alpine
+FROM node:lts-alpine
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci --only=production
@@ -232,7 +232,6 @@ CMD ["npm", "start"]
 #### Multi-Container
 Use `docker-compose.yml`:
 ```yaml
-version: '3.8'
 services:
   web:
     build: .
@@ -345,10 +344,11 @@ aws elasticbeanstalk list-available-solution-stacks \
 - Looks for Rack config
 
 ### Configuration
-```
-aws:elasticbeanstalk:container:ruby:
-  RubyVersion: 3.2
-```
+
+> **Note:** On AL2023, the Ruby version is determined by the solution stack — there is no configuration option to change it. Use a `Procfile` for custom start commands:
+> ```
+> web: bundle exec puma -C config/puma.rb
+> ```
 
 ---
 
