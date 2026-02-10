@@ -10,6 +10,59 @@ if [[ "$tool_name" != "Bash" ]]; then
   exit 0
 fi
 
+# ── Deny destructive commands (require manual user confirmation) ──
+
+# EB CLI destructive commands
+if [[ "$command" =~ ^eb[[:space:]]+terminate ]] || \
+   [[ "$command" =~ ^eb[[:space:]]+appversion[[:space:]]+--delete ]]; then
+  exit 0
+fi
+
+# AWS S3 destructive commands (rm, rb)
+if [[ "$command" =~ ^aws[[:space:]]+s3[[:space:]]+(rm|rb)[[:space:]] ]]; then
+  exit 0
+fi
+
+# AWS ElasticBeanstalk destructive API calls
+if [[ "$command" =~ ^aws[[:space:]]+elasticbeanstalk[[:space:]]+(terminate-environment|delete-application|delete-application-version|delete-environment-configuration|delete-platform-version)[[:space:]] ]]; then
+  exit 0
+fi
+
+# AWS Secrets Manager destructive commands
+if [[ "$command" =~ ^aws[[:space:]]+secretsmanager[[:space:]]+(delete-secret|delete-resource-policy)[[:space:]] ]]; then
+  exit 0
+fi
+
+# AWS SSM destructive commands
+if [[ "$command" =~ ^aws[[:space:]]+ssm[[:space:]]+delete-parameter[[:space:]] ]] || \
+   [[ "$command" =~ ^aws[[:space:]]+ssm[[:space:]]+delete-parameters[[:space:]] ]]; then
+  exit 0
+fi
+
+# AWS ACM destructive commands
+if [[ "$command" =~ ^aws[[:space:]]+acm[[:space:]]+delete-certificate[[:space:]] ]]; then
+  exit 0
+fi
+
+# AWS CloudWatch destructive commands
+if [[ "$command" =~ ^aws[[:space:]]+cloudwatch[[:space:]]+delete-alarms[[:space:]] ]]; then
+  exit 0
+fi
+
+# AWS Route 53 DELETE actions (record deletion)
+if [[ "$command" == *'"Action": "DELETE"'* ]] || [[ "$command" == *'"Action":"DELETE"'* ]]; then
+  if [[ "$command" =~ ^aws[[:space:]]+route53[[:space:]]+change-resource-record-sets ]]; then
+    exit 0
+  fi
+fi
+
+# eb-api.sh with destructive commands
+if [[ "$command" == *"eb-api.sh"* ]] && [[ "$command" == *"terminate"* ]]; then
+  exit 0
+fi
+
+# ── Auto-approve safe commands below ──
+
 # Auto-approve eb CLI commands (EB CLI)
 if [[ "$command" =~ ^eb[[:space:]] ]] || [[ "$command" == "eb" ]]; then
   cat <<'EOF'
@@ -154,7 +207,7 @@ EOF
 fi
 
 # Auto-approve aws acm commands (for SSL certificate management)
-if [[ "$command" =~ ^aws[[:space:]]+acm[[:space:]]+(list-certificates|describe-certificate|request-certificate|delete-certificate)[[:space:]] ]] || [[ "$command" =~ ^aws[[:space:]]+acm[[:space:]]+(list-certificates|describe-certificate)$ ]]; then
+if [[ "$command" =~ ^aws[[:space:]]+acm[[:space:]]+(list-certificates|describe-certificate|request-certificate)[[:space:]] ]] || [[ "$command" =~ ^aws[[:space:]]+acm[[:space:]]+(list-certificates|describe-certificate)$ ]]; then
   cat <<'EOF'
 {
   "hookSpecificOutput": {
@@ -196,7 +249,7 @@ EOF
 fi
 
 # Auto-approve aws ssm commands (for SSM Parameter Store)
-if [[ "$command" =~ ^aws[[:space:]]+ssm[[:space:]]+(get-parameter|get-parameters-by-path|put-parameter|delete-parameter|describe-parameters)[[:space:]] ]]; then
+if [[ "$command" =~ ^aws[[:space:]]+ssm[[:space:]]+(get-parameter|get-parameters-by-path|put-parameter|describe-parameters)[[:space:]] ]]; then
   cat <<'EOF'
 {
   "hookSpecificOutput": {
