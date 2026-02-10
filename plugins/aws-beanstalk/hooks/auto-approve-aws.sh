@@ -18,8 +18,13 @@ if [[ "$command" =~ ^eb[[:space:]]+terminate ]] || \
   exit 0
 fi
 
-# AWS S3 destructive commands (rm, rb)
-if [[ "$command" =~ ^aws[[:space:]]+s3[[:space:]]+(rm|rb)[[:space:]] ]]; then
+# AWS S3 destructive commands (rm, rb, mv)
+if [[ "$command" =~ ^aws[[:space:]]+s3[[:space:]]+(rm|rb|mv)[[:space:]] ]]; then
+  exit 0
+fi
+
+# AWS S3 sync with --delete flag (removes files at destination)
+if [[ "$command" =~ ^aws[[:space:]]+s3[[:space:]]+sync[[:space:]] ]] && [[ "$command" == *"--delete"* ]]; then
   exit 0
 fi
 
@@ -234,8 +239,8 @@ EOF
   exit 0
 fi
 
-# Auto-approve aws secretsmanager commands (for secrets management)
-if [[ "$command" =~ ^aws[[:space:]]+secretsmanager[[:space:]] ]]; then
+# Auto-approve aws secretsmanager commands (explicit allowlist for secrets management)
+if [[ "$command" =~ ^aws[[:space:]]+secretsmanager[[:space:]]+(create-secret|get-secret-value|list-secrets|describe-secret|update-secret|rotate-secret)[[:space:]] ]] || [[ "$command" =~ ^aws[[:space:]]+secretsmanager[[:space:]]+list-secrets$ ]]; then
   cat <<'EOF'
 {
   "hookSpecificOutput": {

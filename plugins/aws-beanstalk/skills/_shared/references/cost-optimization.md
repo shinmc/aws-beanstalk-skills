@@ -20,7 +20,18 @@
 ### Analyze Current Usage
 
 ```bash
-# Get CPU metrics for last 7 days
+# macOS:
+aws cloudwatch get-metric-statistics \
+  --namespace AWS/EC2 \
+  --metric-name CPUUtilization \
+  --dimensions Name=EnvironmentName,Value=<env-name> \
+  --start-time $(date -u -v-7d +%Y-%m-%dT%H:%M:%SZ) \
+  --end-time $(date -u +%Y-%m-%dT%H:%M:%SZ) \
+  --period 86400 \
+  --statistics Average Maximum \
+  --output table
+
+# Linux:
 aws cloudwatch get-metric-statistics \
   --namespace AWS/EC2 \
   --metric-name CPUUtilization \

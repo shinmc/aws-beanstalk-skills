@@ -27,6 +27,8 @@ Read, update, and manage Elastic Beanstalk environment configuration using the E
 
 ## Interactive Config Editor
 
+> **Note:** `eb config` opens an interactive editor (`$EDITOR`). For non-interactive use, prefer `aws elasticbeanstalk describe-configuration-settings` to read and `aws elasticbeanstalk update-environment --option-settings` to write.
+
 ```bash
 eb config
 eb config <env-name>

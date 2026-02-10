@@ -51,7 +51,12 @@ eb logs --all
 ## Step 4: Check Configuration
 
 ```bash
-eb config
+# View config (non-interactive):
+aws elasticbeanstalk describe-configuration-settings \
+  --application-name <app-name> \
+  --environment-name <env-name> --output json
+
+# View environment variables:
 eb printenv
 ```
 

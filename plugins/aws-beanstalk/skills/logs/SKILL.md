@@ -48,10 +48,17 @@ eb events --follow       # Follow events live
 
 ## Platform-Specific Log Paths (via SSH)
 
+**AL2/AL2023 (current platforms):**
 - **Node.js**: `/var/log/web.stdout.log`, `/var/log/web.stderr.log`
-- **Python**: `/var/log/web.stdout.log`, `/opt/python/log/`
-- **Docker**: `/var/log/eb-docker/containers/`
-- **Java**: `/var/log/tomcat/catalina.out`
+- **Python**: `/var/log/web.stdout.log`, `/var/log/web.stderr.log`
+- **Docker**: `/var/log/eb-docker/containers/eb-current-app/*.log`
+- **Java (Corretto)**: `/var/log/web.stdout.log`, `/var/log/web.stderr.log`
+- **Java (Tomcat)**: `/var/log/tomcat/catalina.out`
+
+**Common EB platform logs:**
+- `/var/log/eb-engine.log` — EB deployment engine log
+- `/var/log/eb-hooks.log` — Platform hook execution log
+- `/var/log/nginx/access.log`, `/var/log/nginx/error.log` — Reverse proxy logs
 
 ---
 

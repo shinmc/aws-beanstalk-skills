@@ -1,0 +1,13 @@
+# Local skill symlinks (created by agent installs)
+skills/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~

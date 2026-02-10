@@ -6,5 +6,21 @@
     "name": "shinmc"
   },
   "repository": "https://github.com/shinmc/aws-beanstalk-skills",
-  "license": "MIT"
+  "license": "MIT",
+  "keywords": [
+    "aws",
+    "elastic-beanstalk",
+    "eb",
+    "deployment",
+    "devops",
+    "cloud",
+    "infrastructure",
+    "ssl",
+    "route53",
+    "rds",
+    "secrets-manager",
+    "cloudwatch",
+    "security",
+    "cost-optimization"
+  ]
 }

@@ -115,14 +115,14 @@ This plugin includes a PreToolUse hook that auto-approves common AWS commands to
 
 - `eb` CLI - All EB CLI commands
 - `aws elasticbeanstalk` - All Elastic Beanstalk API operations
-- `aws s3` - Deployment artifact uploads
+- `aws s3` - Deployment artifact uploads (excludes `rm`, `rb`, `mv`, `sync --delete`)
 - `aws cloudwatch` - Metrics and monitoring
 - `aws ec2` - Instance and security group inspection (describe only)
 - `aws elbv2` - Load balancer health checks (describe only)
 - `aws autoscaling` - Auto scaling group inspection (describe only)
 - `aws acm` - SSL certificate management
 - `aws route53` - Custom domain management
-- `aws secretsmanager` - Secrets management
+- `aws secretsmanager` - Secrets management (excludes `delete-secret`, `delete-resource-policy`)
 - `aws ssm` - SSM Parameter Store
 - `aws rds` - Database monitoring (describe/snapshot only)
 - `aws ce` - Cost Explorer analysis

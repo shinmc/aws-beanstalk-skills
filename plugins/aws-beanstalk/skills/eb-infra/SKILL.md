@@ -301,11 +301,21 @@ Key metrics: `EnvironmentHealth`, `ApplicationRequests5xx`, `ApplicationLatencyP
 
 ### Query Metrics (Last Hour)
 ```bash
+# macOS:
 aws cloudwatch get-metric-statistics \
   --namespace AWS/ElasticBeanstalk \
   --metric-name CPUUtilization \
   --dimensions Name=EnvironmentName,Value=<env-name> \
   --start-time $(date -u -v-1H +%Y-%m-%dT%H:%M:%S) \
+  --end-time $(date -u +%Y-%m-%dT%H:%M:%S) \
+  --period 300 --statistics Average Maximum --output table
+
+# Linux:
+aws cloudwatch get-metric-statistics \
+  --namespace AWS/ElasticBeanstalk \
+  --metric-name CPUUtilization \
+  --dimensions Name=EnvironmentName,Value=<env-name> \
+  --start-time $(date -u -d '1 hour ago' +%Y-%m-%dT%H:%M:%S) \
   --end-time $(date -u +%Y-%m-%dT%H:%M:%S) \
   --period 300 --statistics Average Maximum --output table
 ```
@@ -355,16 +365,31 @@ aws cloudwatch delete-alarms --alarm-names "<alarm-name>"
 
 ### Monthly Costs by Service
 ```bash
+# macOS:
 aws ce get-cost-and-usage \
   --time-period Start=$(date -u -v-1m +%Y-%m-01),End=$(date -u +%Y-%m-01) \
+  --granularity MONTHLY --metrics UnblendedCost \
+  --group-by Type=DIMENSION,Key=SERVICE --output json
+
+# Linux:
+aws ce get-cost-and-usage \
+  --time-period Start=$(date -u -d '1 month ago' +%Y-%m-01),End=$(date -u +%Y-%m-01) \
   --granularity MONTHLY --metrics UnblendedCost \
   --group-by Type=DIMENSION,Key=SERVICE --output json
 ```
 
 ### Costs by EB Environment
 ```bash
+# macOS:
 aws ce get-cost-and-usage \
   --time-period Start=$(date -u -v-1m +%Y-%m-01),End=$(date -u +%Y-%m-01) \
+  --granularity MONTHLY --metrics UnblendedCost \
+  --filter '{"Tags":{"Key":"elasticbeanstalk:environment-name","Values":["<env-name>"]}}' \
+  --group-by Type=DIMENSION,Key=SERVICE --output json
+
+# Linux:
+aws ce get-cost-and-usage \
+  --time-period Start=$(date -u -d '1 month ago' +%Y-%m-01),End=$(date -u +%Y-%m-01) \
   --granularity MONTHLY --metrics UnblendedCost \
   --filter '{"Tags":{"Key":"elasticbeanstalk:environment-name","Values":["<env-name>"]}}' \
   --group-by Type=DIMENSION,Key=SERVICE --output json
@@ -372,8 +397,14 @@ aws ce get-cost-and-usage \
 
 ### Cost Forecast
 ```bash
+# macOS:
 aws ce get-cost-forecast \
   --time-period Start=$(date -u +%Y-%m-%d),End=$(date -u -v+1m +%Y-%m-01) \
+  --metric UNBLENDED_COST --granularity MONTHLY --output json
+
+# Linux:
+aws ce get-cost-forecast \
+  --time-period Start=$(date -u +%Y-%m-%d),End=$(date -u -d '1 month' +%Y-%m-01) \
   --metric UNBLENDED_COST --granularity MONTHLY --output json
 ```
 
