@@ -1,6 +1,10 @@
 ---
 name: eb-docs
-description: This skill should be used when the user asks about Elastic Beanstalk documentation, best practices, "how do I", "beanstalk docs", "eb documentation", "beanstalk help", platform-specific guidance, or needs reference information. For EB CLI operations use the dedicated skills (deploy, status, logs, config, troubleshoot, environment, app, maintenance). For AWS infrastructure (SSL, domains, secrets, database, security, monitoring, costs) use the eb-infra skill.
+description: Provides Elastic Beanstalk documentation, best practices, platform-specific guidance, and reference information for all 8 supported platforms. Use when user says "how do I", "beanstalk docs", "eb documentation", "beanstalk help", or needs platform guidance, .ebextensions examples, or .platform directory structure. For EB CLI operations use the dedicated skills. For AWS infrastructure use eb-infra skill.
+compatibility: Requires EB CLI (awsebcli) and AWS CLI with configured credentials.
+metadata:
+  author: shinmc
+  version: 1.0.0
 ---
 
 # AWS Elastic Beanstalk Documentation (EB CLI)

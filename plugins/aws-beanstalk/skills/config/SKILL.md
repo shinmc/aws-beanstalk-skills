@@ -1,6 +1,10 @@
 ---
 name: config
-description: This skill should be used when the user asks "show config", "what's configured", "change settings", "environment variables", "scaling settings", "eb config", "eb setenv", "eb printenv", "eb scale", "set env vars", "change instance type", "configure scaling", "HTTPS listener", "enhanced health", "config template", "tags", or wants to read/modify Elastic Beanstalk configuration. For environment creation use environment skill. For SSL certificate setup use eb-infra skill.
+description: Reads and modifies Elastic Beanstalk environment configuration including environment variables, scaling, instance types, and tags. Use when user says "show config", "change settings", "environment variables", "eb config", "eb setenv", "eb printenv", "eb scale", "change instance type", "configure scaling", "HTTPS listener", "config template", or "tags". For environment creation use environment skill. For SSL setup use eb-infra skill.
+compatibility: Requires EB CLI (awsebcli) and AWS CLI with configured credentials.
+metadata:
+  author: shinmc
+  version: 1.0.0
 ---
 
 # Configuration

@@ -1,6 +1,10 @@
 ---
 name: deploy
-description: This skill should be used when the user wants to deploy code to Elastic Beanstalk, says "deploy", "push to EB", "eb deploy", "release", "rollback", "revert", "deploy to production", "CI/CD", "create version", ".ebignore", "deployment strategy", "eb codesource", "CodeCommit", "eb local", "test locally", or "run locally". For environment creation use environment skill. For logs after deploy use logs skill.
+description: Deploys application code to Elastic Beanstalk environments, manages versions, rollbacks, and deployment strategies. Use when user says "deploy", "push to EB", "eb deploy", "release", "rollback", "revert", "deploy to production", "CI/CD", "create version", ".ebignore", "deployment strategy", "eb codesource", "CodeCommit", "eb local", or "test locally". For environment creation use environment skill.
+compatibility: Requires EB CLI (awsebcli) and AWS CLI with configured credentials.
+metadata:
+  author: shinmc
+  version: 1.0.0
 ---
 
 # Deploy to Elastic Beanstalk

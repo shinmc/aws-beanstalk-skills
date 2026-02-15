@@ -1,6 +1,10 @@
 ---
 name: app
-description: This skill should be used when the user wants to manage Elastic Beanstalk applications (not environments), says "eb init", "eb appversion", "application versions", "version lifecycle", "list applications", "delete version", "initialize project", "create beanstalk app", "new eb application", "list applications", "my beanstalk apps", or needs to manage application-level resources. For environment operations use environment skill.
+description: Initializes EB projects and manages Elastic Beanstalk applications, application versions, and version lifecycle rules. Use when user says "eb init", "eb appversion", "application versions", "version lifecycle", "list applications", "delete version", "initialize project", "create beanstalk app", "new eb application", or "my beanstalk apps". For environment operations use environment skill.
+compatibility: Requires EB CLI (awsebcli) and AWS CLI with configured credentials.
+metadata:
+  author: shinmc
+  version: 1.0.0
 ---
 
 # Application Management

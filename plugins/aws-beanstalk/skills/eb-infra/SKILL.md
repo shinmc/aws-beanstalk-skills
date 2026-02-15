@@ -1,6 +1,10 @@
 ---
 name: eb-infra
-description: This skill should be used when the user asks about SSL, HTTPS, certificates, custom domains, DNS, Route 53, secrets, API keys, parameter store, database, RDS, security groups, IAM roles, CloudWatch alarms, monitoring, costs, billing, or any AWS infrastructure service supporting Elastic Beanstalk environments. For EB CLI operations use the dedicated skills (deploy, status, logs, config, troubleshoot, environment, app, maintenance).
+description: Manages AWS infrastructure supporting Elastic Beanstalk — SSL certificates, custom domains, secrets, database monitoring, security auditing, CloudWatch alarms, and cost analysis. Use when user asks about SSL, HTTPS, certificates, custom domains, DNS, Route 53, secrets, API keys, parameter store, RDS, security groups, IAM roles, CloudWatch, monitoring, costs, or billing. For EB CLI operations use the dedicated skills.
+compatibility: Requires AWS CLI with configured credentials. Some operations require specific IAM permissions (ACM, Route 53, Secrets Manager, RDS, CloudWatch, Cost Explorer).
+metadata:
+  author: shinmc
+  version: 1.0.0
 ---
 
 # AWS Infrastructure for Elastic Beanstalk

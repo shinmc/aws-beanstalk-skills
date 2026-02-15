@@ -1,6 +1,10 @@
 ---
 name: maintenance
-description: This skill should be used when the user asks about managed actions, platform updates, "apply patches", "restart servers", "update beanstalk platform", "eb upgrade", "eb restart", "platform migration", "maintenance window", "pending updates", "managed actions history", or maintenance operations. For configuration changes use config skill.
+description: Manages Elastic Beanstalk platform updates, application server restarts, managed actions, and maintenance windows. Use when user says "apply patches", "restart servers", "update beanstalk platform", "eb upgrade", "eb restart", "platform migration", "maintenance window", "pending updates", or "managed actions history". For configuration changes use config skill.
+compatibility: Requires EB CLI (awsebcli) and AWS CLI with configured credentials.
+metadata:
+  author: shinmc
+  version: 1.0.0
 ---
 
 # Maintenance

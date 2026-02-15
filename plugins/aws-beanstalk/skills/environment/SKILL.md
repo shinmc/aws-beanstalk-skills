@@ -1,6 +1,10 @@
 ---
 name: environment
-description: This skill should be used when the user wants to create, terminate, clone, swap, abort, or restore Elastic Beanstalk environments, says "eb create", "eb terminate", "eb clone", "eb swap", "new environment", "delete environment", "blue/green", "CNAME swap", "abort update", "restore environment", or "DNS availability". For deploying to an existing environment use deploy skill. For configuration changes use config skill.
+description: Manages Elastic Beanstalk environment lifecycle including creation, termination, cloning, URL swapping, and blue/green deployments. Use when user says "eb create", "eb terminate", "eb clone", "eb swap", "new environment", "delete environment", "blue/green", "CNAME swap", "abort update", "restore environment", or "DNS availability". For deploying to an existing environment use deploy skill. For configuration changes use config skill.
+compatibility: Requires EB CLI (awsebcli) and AWS CLI with configured credentials.
+metadata:
+  author: shinmc
+  version: 1.0.0
 ---
 
 # Environment Management

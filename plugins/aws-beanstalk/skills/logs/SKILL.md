@@ -1,6 +1,10 @@
 ---
 name: logs
-description: This skill should be used when the user asks for logs, events, "show me the logs", "what happened", "check errors", "deployment events", "eb logs", "eb events", "view logs", "get logs", "stream logs", "CloudWatch logs", or needs platform-specific log file paths. For troubleshooting based on log content use troubleshoot skill.
+description: Retrieves application logs, streams live logs, enables CloudWatch integration, and views environment events for Elastic Beanstalk. Use when user says "show me the logs", "what happened", "check errors", "deployment events", "eb logs", "eb events", "view logs", "get logs", "stream logs", "CloudWatch logs", or needs platform-specific log file paths. For troubleshooting use troubleshoot skill.
+compatibility: Requires EB CLI (awsebcli) and AWS CLI with configured credentials.
+metadata:
+  author: shinmc
+  version: 1.0.0
 ---
 
 # Logs & Events

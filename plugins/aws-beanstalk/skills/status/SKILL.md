@@ -1,6 +1,10 @@
 ---
 name: status
-description: This skill should be used when the user asks "eb status", "environment status", "what's running", "is it deployed", "check my beanstalk", "check environments", "list environments", "show my aws environments", "eb health", "eb list", "eb open", "eb console", "is it healthy", "how is my beanstalk", or about current deployment state and environment health. For detailed troubleshooting use troubleshoot skill. For log retrieval use logs skill.
+description: Checks Elastic Beanstalk environment status, health, and deployment state. Lists environments and opens them in browser or AWS Console. Use when user says "eb status", "environment status", "what's running", "is it deployed", "check environments", "list environments", "eb health", "eb list", "eb open", "eb console", "is it healthy", or "how is my beanstalk". For troubleshooting use troubleshoot skill. For logs use logs skill.
+compatibility: Requires EB CLI (awsebcli) and AWS CLI with configured credentials.
+metadata:
+  author: shinmc
+  version: 1.0.0
 ---
 
 # Environment Status & Health
