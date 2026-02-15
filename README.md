@@ -172,16 +172,33 @@ Create `plugins/aws-beanstalk/skills/{name}/SKILL.md`:
 ```yaml
 ---
 name: my-skill
-description: What this skill does and when to use it
+description: Does X for Elastic Beanstalk. Use when user says "keyword1", "keyword2", or asks about topic.
+compatibility: Requires EB CLI (awsebcli) and AWS CLI with configured credentials.
+metadata:
+  author: shinmc
+  version: 1.0.0
 ---
 
-# Instructions
+# My Skill
 
-Step-by-step guidance for the agent.
+Brief overview of what this skill does.
 
-## Examples
+## When to Use
 
-Concrete examples showing expected input/output.
+- Scenario 1
+- Scenario 2
+
+## When NOT to Use
+
+- Other scenario → use `other-skill` skill
+
+## Instructions
+
+Step-by-step guidance with concrete commands.
+
+## Composability
+
+- **Related task**: Use `related-skill` skill
 ```
 
 ## Development
