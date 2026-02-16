@@ -2,6 +2,9 @@
 name: app
 description: Initializes EB projects and manages Elastic Beanstalk applications, application versions, and version lifecycle rules. Use when user says "eb init", "eb appversion", "application versions", "version lifecycle", "list applications", "delete version", "initialize project", "create beanstalk app", "new eb application", or "my beanstalk apps". For environment operations use environment skill.
 compatibility: Requires EB CLI (awsebcli) and AWS CLI with configured credentials.
+license: MIT
+allowed-tools:
+  - Bash
 metadata:
   author: shinmc
   version: 1.0.0

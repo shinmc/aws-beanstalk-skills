@@ -2,6 +2,9 @@
 name: eb
 description: General entry point and quick reference for AWS Elastic Beanstalk operations. Routes to specialized skills for specific tasks. Use when user says "eb", "beanstalk", "elastic beanstalk", "check my beanstalk", "my aws environments", or needs help choosing the right EB skill. For specific tasks, prefer the dedicated skill (deploy, status, logs, config, troubleshoot, environment, app, maintenance, eb-infra, eb-docs).
 compatibility: Requires EB CLI (awsebcli) and AWS CLI with configured credentials.
+license: MIT
+allowed-tools:
+  - Bash
 metadata:
   author: shinmc
   version: 1.0.0

@@ -2,6 +2,9 @@
 name: deploy
 description: Deploys application code to Elastic Beanstalk environments, manages versions, rollbacks, and deployment strategies. Use when user says "deploy", "push to EB", "eb deploy", "release", "rollback", "revert", "deploy to production", "CI/CD", "create version", ".ebignore", "deployment strategy", "eb codesource", "CodeCommit", "eb local", or "test locally". For environment creation use environment skill.
 compatibility: Requires EB CLI (awsebcli) and AWS CLI with configured credentials.
+license: MIT
+allowed-tools:
+  - Bash
 metadata:
   author: shinmc
   version: 1.0.0

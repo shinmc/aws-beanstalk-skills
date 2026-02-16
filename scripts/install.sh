@@ -106,13 +106,15 @@ main() {
   echo "Skills directory: $dest"
   echo ""
 
-  # Confirm
-  read -p "Install AWS Elastic Beanstalk skills? [Y/n] " -n 1 -r
-  echo ""
+  # Confirm (skip prompt when piped, e.g. curl | bash)
+  if [ -t 0 ]; then
+    read -p "Install AWS Elastic Beanstalk skills? [Y/n] " -n 1 -r
+    echo ""
 
-  if [[ ! $REPLY =~ ^[Yy]$ ]] && [[ ! -z $REPLY ]]; then
-    echo "Installation cancelled."
-    exit 0
+    if [[ ! $REPLY =~ ^[Yy]$ ]] && [[ ! -z $REPLY ]]; then
+      echo "Installation cancelled."
+      exit 0
+    fi
   fi
 
   # Download

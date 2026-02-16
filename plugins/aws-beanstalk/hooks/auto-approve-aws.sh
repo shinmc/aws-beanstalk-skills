@@ -15,6 +15,11 @@ if [[ "$command" == *"&&"* ]] || [[ "$command" == *"||"* ]] || [[ "$command" == 
   exit 0  # Require manual approval for chained commands
 fi
 
+# ── Reject command substitution to prevent embedded execution ──
+if [[ "$command" == *'$('* ]] || [[ "$command" == *'`'* ]]; then
+  exit 0  # Require manual approval for command substitution
+fi
+
 # ── Validate piped commands — ALL pipe targets must be safe ──
 if [[ "$command" == *"|"* ]]; then
   IFS='|' read -ra PIPE_PARTS <<< "$command"

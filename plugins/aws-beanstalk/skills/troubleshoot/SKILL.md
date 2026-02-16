@@ -2,6 +2,9 @@
 name: troubleshoot
 description: Diagnoses and resolves Elastic Beanstalk issues using a structured workflow of status, health, events, logs, config, and SSH inspection. Use when user says "why is it failing", "what's wrong", "my beanstalk is broken", "debug beanstalk", "health check failure", "deployment failed", "high latency", "out of memory", "502 bad gateway", "red health", or "yellow health". For viewing raw logs use logs skill. For routine status checks use status skill.
 compatibility: Requires EB CLI (awsebcli) and AWS CLI with configured credentials.
+license: MIT
+allowed-tools:
+  - Bash
 metadata:
   author: shinmc
   version: 1.0.0

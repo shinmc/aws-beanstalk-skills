@@ -2,6 +2,9 @@
 name: config
 description: Reads and modifies Elastic Beanstalk environment configuration including environment variables, scaling, instance types, and tags. Use when user says "show config", "change settings", "environment variables", "eb config", "eb setenv", "eb printenv", "eb scale", "change instance type", "configure scaling", "HTTPS listener", "config template", or "tags". For environment creation use environment skill. For SSL setup use eb-infra skill.
 compatibility: Requires EB CLI (awsebcli) and AWS CLI with configured credentials.
+license: MIT
+allowed-tools:
+  - Bash
 metadata:
   author: shinmc
   version: 1.0.0

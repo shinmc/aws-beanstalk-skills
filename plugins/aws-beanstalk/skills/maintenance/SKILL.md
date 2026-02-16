@@ -2,6 +2,9 @@
 name: maintenance
 description: Manages Elastic Beanstalk platform updates, application server restarts, managed actions, and maintenance windows. Use when user says "apply patches", "restart servers", "update beanstalk platform", "eb upgrade", "eb restart", "platform migration", "maintenance window", "pending updates", or "managed actions history". For configuration changes use config skill.
 compatibility: Requires EB CLI (awsebcli) and AWS CLI with configured credentials.
+license: MIT
+allowed-tools:
+  - Bash
 metadata:
   author: shinmc
   version: 1.0.0

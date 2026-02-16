@@ -2,6 +2,9 @@
 name: eb-docs
 description: Provides Elastic Beanstalk documentation, best practices, platform-specific guidance, and reference information for all 8 supported platforms. Use when user says "how do I", "beanstalk docs", "eb documentation", "beanstalk help", or needs platform guidance, .ebextensions examples, or .platform directory structure. For EB CLI operations use the dedicated skills. For AWS infrastructure use eb-infra skill.
 compatibility: Requires EB CLI (awsebcli) and AWS CLI with configured credentials.
+license: MIT
+allowed-tools:
+  - Bash
 metadata:
   author: shinmc
   version: 1.0.0
