@@ -2,7 +2,7 @@
 # AWS Elastic Beanstalk Skills Installer
 # Supports Claude Code, OpenAI Codex, OpenCode, and Cursor
 
-set -e
+set -eo pipefail
 
 REPO_URL="https://github.com/shinmc/aws-beanstalk-skills"
 REPO_RAW="https://raw.githubusercontent.com/shinmc/aws-beanstalk-skills/main"

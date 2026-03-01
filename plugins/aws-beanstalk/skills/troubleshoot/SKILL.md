@@ -104,6 +104,7 @@ aws elbv2 describe-target-health --target-group-arn <arn> --output json
 ```bash
 eb ssh
 eb ssh --instance <instance-id>
+eb ssh --setup           # Configure SSH key if not set up
 ```
 
 Common SSH debugging:

@@ -60,8 +60,10 @@ eb scale <number> <env-name>
 ## Save/Apply Configuration Templates
 
 ```bash
-eb config save --cfg <config-name>       # Save
-eb config --cfg <config-name>            # Apply
+eb config save --cfg <config-name>       # Save current config
+eb config --cfg <config-name>            # Apply saved config
+eb config get <config-name>              # Download saved config to .elasticbeanstalk/
+eb config put <config-name>              # Upload local config to S3
 ```
 
 ## Validate Configuration Before Applying

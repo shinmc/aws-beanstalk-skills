@@ -38,6 +38,8 @@ eb logs <env-name>
 eb logs --all            # All log files
 eb logs --stream         # Stream logs live (Ctrl+C to stop)
 eb logs --zip            # Download complete log bundle
+eb logs --instance <id>  # Logs from specific instance
+eb logs -g <log-group>   # Specific CloudWatch log group
 ```
 
 ## Enable CloudWatch Logs
